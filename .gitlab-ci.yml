@@ -1,0 +1,50 @@
+variables:
+  CONTAINER_TEST_IMAGE: registry.gitlab.com/codebox-id/sigmentasi/dashboard-seller:$CI_BUILD_REF_NAME
+  CONTAINER_RELEASE_IMAGE: registry.gitlab.com/codebox-id/sigmentasi/dashboard-seller:latest
+  PRODUCTION_DIR: /srv/sigmentasi/docker/apps
+
+before_script:
+  - echo "Running CodeBox Builder"
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+  
+stages:
+  - build
+  - release
+  - deploy
+  
+build:
+  stage: build
+  only:
+    - main
+  script:
+    - docker build -t $CONTAINER_TEST_IMAGE -f Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+  tags:
+    - sigmentasi
+
+release:
+  stage: release
+  only:
+    - main
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+    - docker image rm $CONTAINER_TEST_IMAGE
+  tags:
+    - sigmentasi
+
+deploy:
+  stage: deploy
+  only: 
+    - main
+  before_script:
+    - echo "Deploying Production"
+    - cd $PRODUCTION_DIR
+    - docker login -u $CODEBOX_DEPLOY_TOKEN_USER -p $CODEBOX_DEPLOY_TOKEN_PASSWORD registry.gitlab.com
+  script:
+    - docker-compose -f seller-docker-compose.yaml pull
+    - docker-compose -f seller-docker-compose.yaml up --force-recreate -d
+    - docker rmi $(docker images -f "dangling=true" -q) || true
+  tags:
+    - sigmentasi

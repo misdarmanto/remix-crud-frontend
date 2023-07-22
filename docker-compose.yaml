@@ -1,0 +1,16 @@
+version: '3.1'
+
+services:
+  sigmentasi-seller:
+    container_name: sigmentasi-seller
+    image: registry.gitlab.com/codebox-id/sigmentasi/dashboard-seller:latest
+    restart: always
+    environment:
+        NODE_ENV: production
+        PORT: 8080
+        SESSION_SECRET: S!gm3nt4s12022!
+        AUTHORIZATION_ASSET_USERNAME: sigmentasi_assets
+        AUTHORIZATION_ASSET_PASSWORD: sigmentasi_assets
+        BASE_URL_API_ASSET: https://asset.lenterailmu.id
+    ports:
+      - 5005:8080

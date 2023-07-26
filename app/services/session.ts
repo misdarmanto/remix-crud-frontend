@@ -1,9 +1,7 @@
 import { createCookieSessionStorage, redirect, Session } from "remix";
 import { CONFIG } from "~/config";
+import { ISessionModel } from "~/models/sessionModel";
 import { CONSOLE } from "~/utilities/log";
-
-// let sessionSecret = process.env.SESSION_SECRET;
-// if (!sessionSecret) throw new Error("SESSION_SECRET must be set");
 
 export let storage = createCookieSessionStorage({
 	cookie: {
@@ -17,18 +15,17 @@ export let storage = createCookieSessionStorage({
 	},
 });
 
-export async function createSession(data: any, redirectTo: string) {
+export async function createSession(data: ISessionModel) {
 	try {
 		let session = await storage.getSession();
-		session.set("user_id", data.data.user.id);
-		session.set("user_name", data.data.user.name);
-		session.set("phone", data.data.user.phone);
-		session.set("email", data.data.user.email);
-		session.set("role", data.data.user.role);
-		session.set("session", data.data.session.session);
-		session.set("expired_on", data.data.session.expired_on);
-		session.set("modules", data.data.modules);
-		return redirect(redirectTo, {
+		session.set("adminId", data.adminId);
+		session.set("adminName", data.adminName);
+		session.set("adminEmail", data.adminEmail);
+		session.set("adminRole", data.adminRole);
+		session.set("session", data.session);
+		session.set("sessionExpiredOn", data.sessionExpiredOn);
+
+		return redirect("/", {
 			headers: { "Set-Cookie": await storage.commitSession(session) },
 		});
 	} catch (error) {
@@ -47,17 +44,17 @@ export async function logout(request: Request) {
 
 export const checkSession = async (request: Request) => {
 	const session = await storage.getSession(request.headers.get("Cookie"));
-	const isLogedIn = session.has("user_id");
+	const isLogedIn = session.has("adminId");
 	if (!isLogedIn) return false;
 
-	return {
-		user_id: session.get("user_id"),
-		user_name: session.get("user_name"),
-		phone: session.get("phone"),
-		email: session.get("email"),
-		role: session.get("role"),
+	const result: ISessionModel = {
+		adminId: session.get("adminId"),
+		adminName: session.get("adminName"),
+		adminEmail: session.get("adminEmail"),
+		adminRole: session.get("adminRole"),
 		session: session.get("session"),
-		expired: session.get("expired_on"),
-		modules: session.get("modules"),
+		sessionExpiredOn: session.get("sessionExpiredOn"),
 	};
+
+	return result;
 };

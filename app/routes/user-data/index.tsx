@@ -1,5 +1,12 @@
 import { ReactElement, useEffect, useState } from "react";
-import { Form, useLoaderData, useSubmit, useTransition, Link } from "@remix-run/react";
+import {
+	Form,
+	useLoaderData,
+	useSubmit,
+	useTransition,
+	Link,
+	useActionData,
+} from "@remix-run/react";
 import { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/router";
 import { API } from "~/services/api";
@@ -8,8 +15,12 @@ import { Table, TableHeader } from "~/components/Table";
 import { CONFIG } from "~/config";
 import { CONSOLE } from "~/utilities/log";
 import { Modal } from "~/components/Modal";
-import { classNames } from "~/utilities";
 import { Breadcrumb } from "~/components/breadcrumb";
+import { IUserModel } from "~/models/userModel";
+import { ISessionModel } from "~/models/sessionModel";
+import axios from "axios";
+import moment from "moment";
+import * as XLSX from "xlsx";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -17,32 +28,23 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
 	let url = new URL(request.url);
 	let search = url.searchParams.get("search") || "";
-	let status = url.searchParams.get("status") || "";
 	let size = url.searchParams.get("size") || 10;
 	let page = url.searchParams.get("page") || 0;
-	let franchiseId = url.searchParams.get("franchise_id") || "";
-	let categoryId = url.searchParams.get("category_id") || "";
-	let creatorId = url.searchParams.get("creator_id") || "";
 
 	try {
 		const result = await API.getTableData({
 			session: session,
-			url: CONFIG.base_url_api.product + "/admin/product/list",
+			url: CONFIG.base_url_api + "/users/list",
 			pagination: true,
 			page: +page || 0,
 			size: +size || 10,
 			filters: {
 				search: search || "",
-				bank_id: 1,
-				status: status,
-				franchise_id: franchiseId,
-				category_id: categoryId,
-				creator_id: creatorId,
 			},
 		});
 		return {
 			table: {
-				link: "product",
+				link: "user-data",
 				data: result,
 				page: page,
 				size: size,
@@ -50,14 +52,14 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 					search: search,
 				},
 			},
-			session: session,
-			asset: {
-				url: `${CONFIG.base_url_api.asset}/upload`,
-				auth: {
-					username: CONFIG.asset.authorization.username,
-					password: CONFIG.asset.authorization.passsword,
+			API: {
+				baseUrl: CONFIG.base_url_api,
+				authorization: {
+					username: CONFIG.authorization.username,
+					password: CONFIG.authorization.passsword,
 				},
 			},
+			session: session,
 			isError: false,
 		};
 	} catch (error: any) {
@@ -77,17 +79,18 @@ export let action: ActionFunction = async ({ request }) => {
 		if (request.method == "DELETE") {
 			reponse = await API.delete(
 				session,
-				CONFIG.base_url_api.product + `/admin/product?id=${formData.get("id")}`
+				CONFIG.base_url_api + `/users?userId=${formData.get("userId")}`
 			);
+
+			console.log(reponse);
 		}
-		return reponse.data;
+		return { ...reponse.data, isError: false };
 	} catch (error: any) {
 		return { ...error, isError: true };
 	}
 };
 
 export default function Index(): ReactElement {
-	const navigation = [{ title: "Produk", href: "", active: true }];
 	const loader = useLoaderData();
 
 	console.log(loader);
@@ -103,89 +106,152 @@ export default function Index(): ReactElement {
 	const transition = useTransition();
 	const [mobileActionDropDown, setMobileActionDropdown] = useState<number | null>();
 
-	const [tabs, setTabs] = useState<any[]>([]);
+	const [modalDelete, setModalDelete] = useState(false);
+	const [modalData, setModalData] = useState<IUserModel>();
+
+	const actionData = useActionData();
+	const session: ISessionModel = loader.session;
+
+	const submitDeleteData = async (e: React.FormEvent<HTMLFormElement>) => {
+		submit(e.currentTarget, { method: "delete", action: `/user-data` });
+		setModalDelete(false);
+	};
+
+	const navigation = [{ title: "data pemilu", href: "", active: true }];
 
 	useEffect(() => {
 		setMobileActionDropdown(null);
 	}, []);
 
+	const download = async () => {
+		try {
+			const result = await axios.get(
+				`${loader.API.baseUrl}/users/list?pagination=false`,
+				{
+					auth: {
+						username: loader.API.authorization.username,
+						password: loader.API.authorization.password,
+					},
+				}
+			);
+
+			let xlsRows: any[] = [];
+			await result.data.data.items.map((value: IUserModel, index: number) => {
+				let documentItem = {
+					userName: value.userName,
+					userPhoneNumber: value.userPhoneNumber,
+					userDetailAddress: value.userDetailAddress,
+					userDesa: value.userDesa,
+					userKecamatan: value.userKecamatan,
+					userKabupaten: value.userKabupaten,
+					createdOn: value.createdOn,
+				};
+				xlsRows.push(documentItem);
+			});
+
+			let xlsHeader = [
+				"Nama",
+				"WA",
+				"Alamat",
+				"Desa",
+				"Kecamatan",
+				"Kabupaten",
+				"Tgl Dibuat",
+			];
+			let createXLSLFormatObj = [];
+			createXLSLFormatObj.push(xlsHeader);
+			xlsRows.map((value: IUserModel, i) => {
+				let innerRowData = [];
+				innerRowData.push(value.userName);
+				innerRowData.push(value.userPhoneNumber);
+				innerRowData.push(value.userDetailAddress);
+				innerRowData.push(value.userDesa);
+				innerRowData.push(value.userKecamatan);
+				innerRowData.push(value.userKabupaten);
+				innerRowData.push(value.createdOn);
+				createXLSLFormatObj.push(innerRowData);
+			});
+
+			/* File Name */
+			let filename = `Data Pengguna ${moment().format("DD-MM-YYYY")}.xlsx`;
+
+			/* Sheet Name */
+			let ws_name = "Sheet1";
+			if (typeof console !== "undefined") console.log(new Date());
+			let wb = XLSX.utils.book_new(),
+				ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj);
+
+			XLSX.utils.book_append_sheet(wb, ws, ws_name);
+			XLSX.writeFile(wb, filename);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
 	const header: TableHeader[] = [
 		{
-			title: "Foto",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "-photo"} className="md:px-6 md:py-3 w-auto md:w-2/12 mb-4 md:mb-0 ">
-					<img src={data.thumbnail} className="object-cover rounded" />
+			title: "No",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "-photo"} className="md:px-6 md:py-3 mb-4 md:mb-0">
+					{index + 1}
 				</td>
 			),
 		},
 		{
 			title: "Nama",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "name"} className="md:px-2 md:py-3">
-					{data.name}
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "userName"} className="md:px-6 md:py-3 ">
+					{data.userName}
 				</td>
 			),
 		},
 		{
-			title: "Kategori",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "category"} className="md:px-2 md:py-3">
-					{data.category_name}
+			title: "WA",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "wa"} className="md:px-6 md:py-3">
+					{data.userPhoneNumber}
 				</td>
 			),
 		},
 		{
-			title: "Status",
-			data: (data: any, index: number): ReactElement => (
-				<>
-					{data.variants.length === 0 && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								lengkapi data varian!
-							</span>
-						</td>
-					)}
-					{data.variants.length !== 0 && data.status_confirmation === "review" && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								review
-							</span>
-						</td>
-					)}
-
-					{data.variants.length !== 0 && data.status_confirmation === "accepted" && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								publish
-							</span>
-						</td>
-					)}
-
-					{data.variants.length !== 0 && data.status_confirmation === "rejected" && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								{data.status_confirmation}
-							</span>
-						</td>
-					)}
-				</>
-			),
-		},
-
-		{
-			title: "Total Varian",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index} className="md:px-6 md:py-3 text-sm break-all">
-					{data.variants?.length + ""}
+			title: "alamat",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "program-name"} className="md:px-6 md:py-3 break-all">
+					{data.userDetailAddress.length > 10
+						? data.userDetailAddress.slice(0, 10) + "....."
+						: data.userDetailAddress}
 				</td>
 			),
 		},
-
+		{
+			title: "Desa",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "desa"} className="md:px-6 md:py-3">
+					{data.userDesa}
+				</td>
+			),
+		},
+		{
+			title: "Kecamatan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "kecamatan"} className="md:px-6 md:py-3">
+					{data.userKecamatan}
+				</td>
+			),
+		},
+		{
+			title: "Kabupaten",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "kabupaten"} className="md:px-6 md:py-3">
+					{data.userKabupaten}
+				</td>
+			),
+		},
 		{
 			title: "Aksi",
 			action: true,
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "action"} className="md:px-2 md:py-3">
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "action"} className="md:px-6 md:py-3 break-all">
 					{/* Desktop only  */}
 					<div className="hidden md:block w-64">
 						<button
@@ -198,15 +264,14 @@ export default function Index(): ReactElement {
 							Hapus
 						</button>
 						&nbsp;
-						<Link to={`/product/edit/${data.id}/info`}>
-							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
+						<Link to={`/user-data/edit/${data.userId}`}>
+							<button className="bg-transparent m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
 								Edit
 							</button>
 						</Link>
-						&nbsp;
-						<Link to={`/product/detail/${data.id}/info`}>
+						<Link to={`/user-data/detail/${data.userId}`}>
 							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
-								Lihat
+								Detail
 							</button>
 						</Link>
 					</div>
@@ -242,16 +307,29 @@ export default function Index(): ReactElement {
 						<div
 							id={`dropdown-${index}`}
 							className={`${
-								mobileActionDropDown == index ? "absolute right-0" : "hidden"
+								mobileActionDropDown == index
+									? "absolute right-0"
+									: "hidden"
 							} z-10 w-44 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-white`}
 						>
-							<ul className="py-1" aria-labelledby={`dropdownButton-${index}`}>
+							<ul
+								className="py-1"
+								aria-labelledby={`dropdownButton-${index}`}
+							>
 								<li>
 									<Link
-										to={`/product/detail/${data.id}/info`}
+										to={`/user-data/edit/${data.userId}`}
 										className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
 									>
-										Lihat
+										Edit
+									</Link>
+								</li>
+								<li>
+									<Link
+										to={`/user-data/detail/${data.userId}`}
+										className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
+									>
+										Detail
 									</Link>
 								</li>
 								<li>
@@ -273,50 +351,30 @@ export default function Index(): ReactElement {
 		},
 	];
 
-	const [modalDelete, setModalDelete] = useState(false);
-	const [modalData, setModalData] = useState<any>();
-	const submitDeleteData = async (e: React.FormEvent<HTMLFormElement>) => {
-		submit(e.currentTarget, { method: "delete", action: `/product` });
-		setModalDelete(false);
-	};
-
 	return (
 		<div className="">
-			<Breadcrumb title="Produk" navigation={navigation} />
-
-			<div className="border-gray-200">
-				<nav className="-mb-px flex space-x-8" aria-label="Tabs">
-					{tabs.map(
-						(tab, i): ReactElement => (
-							<Link to={tab.href} className={tab.current && "pointer-events-none"}>
-								<button
-									key={i}
-									className={classNames(
-										tab.current
-											? "border-green-500 text-green-600"
-											: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-										"whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-									)}
-									aria-current={tab.current ? "page" : undefined}
-								>
-									{tab.name}
-								</button>
-							</Link>
-						)
-					)}
-				</nav>
-			</div>
+			<Breadcrumb title="Data Pemilu" navigation={navigation} />
+			{actionData?.isError && (
+				<div
+					className="p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50"
+					role="alert"
+				>
+					<span className="font-medium">Error</span> {actionData.message}
+				</div>
+			)}
 
 			<Form
-				onChange={(e: any) => submit(e.currentTarget, { action: `/${loader?.table?.link}` })}
+				onChange={(e: any) =>
+					submit(e.currentTarget, { action: `${loader?.table?.link}` })
+				}
 				method="get"
 			>
 				<div className="flex flex-col md:flex-row justify-between mb-2 md:px-0">
-					<div className="mt-1 w-full flex flex-row justify-between md:justify-start">
+					<div className="px-1 w-full flex flex-row gap-2 justify-between md:justify-start">
 						<select
 							name="size"
 							defaultValue={loader?.table?.size}
-							className="block w-16 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+							className="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
 						>
 							<option value="2">2</option>
 							<option value="5">5</option>
@@ -330,11 +388,20 @@ export default function Index(): ReactElement {
 								type="button"
 								className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
 							>
-								Tambah Produk
+								Tambah Data
 							</button>
 						</Link>
+						{session.adminRole === "superAdmin" && (
+							<button
+								type="button"
+								onClick={download}
+								className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
+							>
+								Export
+							</button>
+						)}
 					</div>
-					<div className="mt-1 w-full md:w-1/5">
+					<div className="w-full md:w-1/5">
 						<input
 							defaultValue={loader?.table?.filter.search}
 							name="search"
@@ -355,8 +422,13 @@ export default function Index(): ReactElement {
 				}}
 			>
 				<Form method="delete" onSubmit={submitDeleteData}>
-					<input className="hidden" name="id" value={modalData?.id}></input>
-					Anda yakin akan menghapus produk <strong>{modalData?.name}</strong>
+					<input
+						className="hidden"
+						name="userId"
+						value={modalData?.userId}
+					></input>
+					Apakah anda yakin akan menghapus{" "}
+					<strong>{modalData?.userName}</strong>
 					<div className="flex flex-col md:flex-row mt-4">
 						<button
 							type="submit"

@@ -24,15 +24,12 @@ export let action: ActionFunction = async ({ request }) => {
 	invariant(typeof password === "string");
 
 	try {
-		let data = await API.post(request, `${CONFIG.base_url_api.user}/user/login`, {
-			account: email,
-			password: password,
+		let data = await API.post(request, `${CONFIG.base_url_api}/admins/login`, {
+			adminEmail: email,
+			adminPassword: password,
 		});
-		if (data.data.user.role !== "seller") {
-			errors.message = "akun anda belum terdaftar sebagai seller. silah hubungi admin! ";
-			return { errors };
-		}
-		return createSession(data, "/");
+
+		return createSession(data.data);
 	} catch (err: any) {
 		console.log(errors);
 		errors.message = err.message;
@@ -43,8 +40,6 @@ export let action: ActionFunction = async ({ request }) => {
 export default function LoginPage() {
 	let errors = useActionData();
 	let transition = useTransition();
-	const actionData = useActionData();
-	console.log(actionData);
 
 	return (
 		<>

@@ -1,5 +1,12 @@
 import { ReactElement, useEffect, useState } from "react";
-import { Form, useLoaderData, useSubmit, useTransition, Link } from "@remix-run/react";
+import {
+	Form,
+	useLoaderData,
+	useSubmit,
+	useTransition,
+	Link,
+	useActionData,
+} from "@remix-run/react";
 import { LoaderFunction, ActionFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/router";
 import { API } from "~/services/api";
@@ -8,8 +15,10 @@ import { Table, TableHeader } from "~/components/Table";
 import { CONFIG } from "~/config";
 import { CONSOLE } from "~/utilities/log";
 import { Modal } from "~/components/Modal";
-import { classNames } from "~/utilities";
 import { Breadcrumb } from "~/components/breadcrumb";
+import { IAdminModel } from "~/models/adminModel";
+import { convertTime } from "~/utilities/convertTime";
+import { ISessionModel } from "~/models/sessionModel";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -17,32 +26,23 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
 	let url = new URL(request.url);
 	let search = url.searchParams.get("search") || "";
-	let status = url.searchParams.get("status") || "";
 	let size = url.searchParams.get("size") || 10;
 	let page = url.searchParams.get("page") || 0;
-	let franchiseId = url.searchParams.get("franchise_id") || "";
-	let categoryId = url.searchParams.get("category_id") || "";
-	let creatorId = url.searchParams.get("creator_id") || "";
 
 	try {
 		const result = await API.getTableData({
 			session: session,
-			url: CONFIG.base_url_api + "/admin/product/list",
+			url: CONFIG.base_url_api + "/admins/list",
 			pagination: true,
 			page: +page || 0,
 			size: +size || 10,
 			filters: {
 				search: search || "",
-				bank_id: 1,
-				status: status,
-				franchise_id: franchiseId,
-				category_id: categoryId,
-				creator_id: creatorId,
 			},
 		});
 		return {
 			table: {
-				link: "product",
+				link: "admin",
 				data: result,
 				page: page,
 				size: size,
@@ -70,10 +70,10 @@ export let action: ActionFunction = async ({ request }) => {
 		if (request.method == "DELETE") {
 			reponse = await API.delete(
 				session,
-				CONFIG.base_url_api + `/admin/product?id=${formData.get("id")}`
+				CONFIG.base_url_api + `/admins?adminId=${formData.get("adminId")}`
 			);
 		}
-		return reponse.data;
+		return { ...reponse.data, isError: false };
 	} catch (error: any) {
 		return { ...error, isError: true };
 	}
@@ -81,6 +81,7 @@ export let action: ActionFunction = async ({ request }) => {
 
 export default function Index(): ReactElement {
 	const loader = useLoaderData();
+	const session: ISessionModel = loader.session;
 
 	console.log(loader);
 	if (loader.isError) {
@@ -95,93 +96,61 @@ export default function Index(): ReactElement {
 	const transition = useTransition();
 	const [mobileActionDropDown, setMobileActionDropdown] = useState<number | null>();
 
-	const [tabs, setTabs] = useState<any[]>([]);
-
 	useEffect(() => {
 		setMobileActionDropdown(null);
 	}, []);
 
 	const header: TableHeader[] = [
 		{
-			title: "Foto",
-			data: (data: any, index: number): ReactElement => (
+			title: "No",
+			data: (data: IAdminModel, index: number): ReactElement => (
 				<td
 					key={index + "-photo"}
-					className="md:px-6 md:py-3 w-auto md:w-2/12 mb-4 md:mb-0 "
+					className="md:px-6 md:py-3 w-auto mb-4 md:mb-0 "
 				>
-					<img src={data.thumbnail} className="object-cover rounded" />
+					{index + 1}
 				</td>
 			),
 		},
 		{
 			title: "Nama",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "name"} className="md:px-2 md:py-3">
-					{data.name}
+			data: (data: IAdminModel, index: number): ReactElement => (
+				<td key={index + "adminName"} className="md:px-2 md:py-3">
+					{data.adminName}
 				</td>
 			),
 		},
 		{
-			title: "Kategori",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index + "category"} className="md:px-2 md:py-3">
-					{data.category_name}
+			title: "E-mail",
+			data: (data: IAdminModel, index: number): ReactElement => (
+				<td key={index + "adminEmail"} className="md:px-2 md:py-3">
+					{data.adminEmail}
 				</td>
 			),
 		},
 		{
-			title: "Status",
-			data: (data: any, index: number): ReactElement => (
-				<>
-					{data.variants.length === 0 && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								lengkapi data varian!
-							</span>
-						</td>
-					)}
-					{data.variants.length !== 0 && data.status_confirmation === "review" && (
-						<td key={index + "status"} className="md:px-2 md:py-3">
-							<span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-								review
-							</span>
-						</td>
-					)}
-
-					{data.variants.length !== 0 &&
-						data.status_confirmation === "accepted" && (
-							<td key={index + "status"} className="md:px-2 md:py-3">
-								<span className="bg-teal-100 text-teal-800 text-xs font-medium px-2.5 py-0.5 rounded">
-									publish
-								</span>
-							</td>
-						)}
-
-					{data.variants.length !== 0 &&
-						data.status_confirmation === "rejected" && (
-							<td key={index + "status"} className="md:px-2 md:py-3">
-								<span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-									{data.status_confirmation}
-								</span>
-							</td>
-						)}
-				</>
-			),
-		},
-
-		{
-			title: "Total Varian",
-			data: (data: any, index: number): ReactElement => (
-				<td key={index} className="md:px-6 md:py-3 text-sm break-all">
-					{data.variants?.length + ""}
+			title: "Role",
+			data: (data: IAdminModel, index: number): ReactElement => (
+				<td key={index + "role"} className="md:px-2 md:py-3">
+					{data.adminRole}
 				</td>
 			),
 		},
-
 		{
+			title: "Di buat pada",
+			data: (data: IAdminModel, index: number): ReactElement => (
+				<td key={index + "createdAt"} className="md:px-2 md:py-3">
+					{convertTime(data.createdOn)}
+				</td>
+			),
+		},
+	];
+
+	if (session.adminRole === "superAdmin") {
+		header.push({
 			title: "Aksi",
 			action: true,
-			data: (data: any, index: number): ReactElement => (
+			data: (data: IAdminModel, index: number): ReactElement => (
 				<td key={index + "action"} className="md:px-2 md:py-3">
 					{/* Desktop only  */}
 					<div className="hidden md:block w-64">
@@ -195,15 +164,9 @@ export default function Index(): ReactElement {
 							Hapus
 						</button>
 						&nbsp;
-						<Link to={`/product/edit/${data.id}/info`}>
+						<Link to={`/admin/edit/${data.adminId}`}>
 							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
 								Edit
-							</button>
-						</Link>
-						&nbsp;
-						<Link to={`/product/detail/${data.id}/info`}>
-							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
-								Lihat
 							</button>
 						</Link>
 					</div>
@@ -250,10 +213,10 @@ export default function Index(): ReactElement {
 							>
 								<li>
 									<Link
-										to={`/product/detail/${data.id}/info`}
+										to={`/admin/edit/${data.adminId}`}
 										className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
 									>
-										Lihat
+										Edit
 									</Link>
 								</li>
 								<li>
@@ -272,60 +235,44 @@ export default function Index(): ReactElement {
 					</div>
 				</td>
 			),
-		},
-	];
+		});
+	}
 
 	const [modalDelete, setModalDelete] = useState(false);
-	const [modalData, setModalData] = useState<any>();
+	const [modalData, setModalData] = useState<IAdminModel>();
 	const submitDeleteData = async (e: React.FormEvent<HTMLFormElement>) => {
-		submit(e.currentTarget, { method: "delete", action: `/product` });
+		submit(e.currentTarget, { method: "delete", action: `/admin` });
 		setModalDelete(false);
 	};
 
+	const actionData = useActionData();
 	const navigation = [{ title: "Admin", href: "", active: true }];
 
 	return (
 		<div className="">
-			<Breadcrumb title="Pengaturan" navigation={navigation} />
+			<Breadcrumb title="Daftar Admin" navigation={navigation} />
 
-			<div className="border-gray-200">
-				<nav className="-mb-px flex space-x-8" aria-label="Tabs">
-					{tabs.map(
-						(tab, i): ReactElement => (
-							<Link
-								to={tab.href}
-								className={tab.current && "pointer-events-none"}
-							>
-								<button
-									key={i}
-									className={classNames(
-										tab.current
-											? "border-green-500 text-green-600"
-											: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-										"whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-									)}
-									aria-current={tab.current ? "page" : undefined}
-								>
-									{tab.name}
-								</button>
-							</Link>
-						)
-					)}
-				</nav>
-			</div>
+			{actionData?.isError && (
+				<div
+					className="p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50"
+					role="alert"
+				>
+					<span className="font-medium">Error</span> {actionData.message}
+				</div>
+			)}
 
 			<Form
 				onChange={(e: any) =>
-					submit(e.currentTarget, { action: `/${loader?.table?.link}` })
+					submit(e.currentTarget, { action: `${loader?.table?.link}` })
 				}
 				method="get"
 			>
 				<div className="flex flex-col md:flex-row justify-between mb-2 md:px-0">
-					<div className="mt-1 w-full flex flex-row justify-between md:justify-start">
+					<div className="px-1 w-full flex flex-row justify-between md:justify-start">
 						<select
 							name="size"
 							defaultValue={loader?.table?.size}
-							className="block w-16 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+							className="block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
 						>
 							<option value="2">2</option>
 							<option value="5">5</option>
@@ -334,16 +281,18 @@ export default function Index(): ReactElement {
 							<option value="100">100</option>
 						</select>
 						&nbsp;
-						<Link to={`create`}>
-							<button
-								type="button"
-								className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
-							>
-								Tambah Admin
-							</button>
-						</Link>
+						{session.adminRole === "superAdmin" && (
+							<Link to={`add`}>
+								<button
+									type="button"
+									className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
+								>
+									Tambah Admin
+								</button>
+							</Link>
+						)}
 					</div>
-					<div className="mt-1 w-full md:w-1/5">
+					<div className="w-full md:w-1/5">
 						<input
 							defaultValue={loader?.table?.filter.search}
 							name="search"
@@ -364,8 +313,8 @@ export default function Index(): ReactElement {
 				}}
 			>
 				<Form method="delete" onSubmit={submitDeleteData}>
-					<input className="hidden" name="id" value={modalData?.id}></input>
-					Anda yakin akan menghapus produk <strong>{modalData?.name}</strong>
+					<input className="hidden" name="adminId" value={modalData?.adminId} />
+					Anda yakin akan menghapus <strong>{modalData?.adminName}</strong>
 					<div className="flex flex-col md:flex-row mt-4">
 						<button
 							type="submit"

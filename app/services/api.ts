@@ -1,14 +1,11 @@
 import axios from "axios";
 import { CONFIG } from "~/config";
+import { ISessionModel } from "~/models/sessionModel";
 import { CONSOLE } from "~/utilities/log";
 
-export const getHeaders = (session: any) => {
+export const getHeaders = (session: ISessionModel) => {
 	return {
-		"x-app-id": session?.app_id || "",
-		"x-user-owner-id": session?.user_id || "",
-		"x-user-id": session?.user_id || "",
-		"x-creator-id": session?.user_id || "",
-		"x-creator-name": session?.user_name || "",
+		"x-user-id": session.adminId || "",
 	};
 };
 

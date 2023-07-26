@@ -1,34 +1,57 @@
-import { HomeIcon, MenuAlt2Icon, XIcon, CogIcon } from "@heroicons/react/outline";
+import {
+	HomeIcon,
+	MenuAlt2Icon,
+	XIcon,
+	CogIcon,
+	UserIcon,
+} from "@heroicons/react/outline";
 import { IoMdNotifications } from "react-icons/io";
-import { BsFillEmojiSmileFill } from "react-icons/bs";
+import { BsPerson } from "react-icons/bs";
 import { Fragment, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Disclosure } from "@headlessui/react";
 
-import { DatabaseIcon } from "@heroicons/react/solid";
+import { DatabaseIcon, KeyIcon, UsersIcon } from "@heroicons/react/solid";
 import { NavLink } from "react-router-dom";
 import { Form, Link } from "@remix-run/react";
+import { ISessionModel } from "~/models/sessionModel";
 
 function classNames(...classes: any[]) {
 	return classes.filter(Boolean).join(" ");
 }
 
-export default function Layout({ children, session }: { children?: any; session?: any }) {
+export default function Layout({
+	children,
+	session,
+}: {
+	children?: any;
+	session?: ISessionModel;
+}) {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	const dashboard = { name: "Home", icon: HomeIcon, href: "/" };
+	const dashboard = { name: "Dashboard", icon: HomeIcon, href: "/" };
 
 	const data = {
 		name: "Data Pemilu",
 		icon: DatabaseIcon,
-		href: "data/?size=10",
+		href: "user-data/?size=10",
 	};
 
-	const settingsChild = [{ name: "Admin", href: "settings/admin" }];
+	const myProfile = {
+		name: "Profile",
+		icon: UserIcon,
+		href: "account/my-profile",
+	};
 
-	const settings = { name: "Pengaturan", icon: CogIcon, children: settingsChild };
+	const admin = { name: "Admin", icon: UsersIcon, href: "admin" };
 
-	const NAVIGATIONS_LIST = [dashboard, data, settings];
+	const NAVIGATIONS_LIST = [dashboard, data];
+
+	if (session?.adminRole === "superAdmin") {
+		NAVIGATIONS_LIST.push(admin);
+	}
+
+	NAVIGATIONS_LIST.push(myProfile);
 
 	const [navigationActive, setNavigationActive] = useState("Home");
 
@@ -193,13 +216,13 @@ export default function Layout({ children, session }: { children?: any; session?
 								</button>
 							</div>
 						</Transition.Child>
-						<div className="flex-shrink-0 flex items-center px-4">
+						{/* <div className="flex-shrink-0 flex items-center px-4">
 							<img
 								className="h-14 w-auto"
 								src="https://asset.lenterailmu.id?dir=resources/icon/Screen%20Shot%202022-04-16%20at%2010.56.12.png"
 								alt="sigmentasi"
 							/>
-						</div>
+						</div> */}
 						<div className="mt-5 flex-1 h-0 overflow-y-auto scrollbar-hide">
 							<nav className="px-2 space-y-1">{renderListNavigation}</nav>
 						</div>
@@ -216,19 +239,17 @@ export default function Layout({ children, session }: { children?: any; session?
 			<div className="hidden bg-white md:flex md:flex-shrink-0">
 				<div
 					className={`${
-						open ? "w-60" : "w-fit"
+						open ? "w-64" : "w-fit"
 					} sm:block relative h-screen duration-100 border-r border-gray-200 px-3`}
 				>
 					<div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-						<h1 className="text-md  text-gray-700">
+						<h1 className="text-md text-gray-700">
 							<span className="font-extrabold text-2xl text-teal-500 mx-1">
-								Dapil
+								Dapil Apps
 							</span>
 						</h1>
 						<div className="mt-5 flex-1 flex flex-col">
-							<nav className="flex-1 px-2 space-y-1">
-								{renderListNavigation}
-							</nav>
+							<nav className="flex-1 space-y-1">{renderListNavigation}</nav>
 						</div>
 					</div>
 				</div>
@@ -243,10 +264,10 @@ export default function Layout({ children, session }: { children?: any; session?
 						<MenuAlt2Icon className="h-6 w-6" aria-hidden="true" />
 					</button>
 					<div className="flex-1 px-2 flex flex-row-reverse">
-						<div className="ml-4 flex items-center md:ml-6">
+						<div className="ml-4 sm:mr-10 flex items-center">
 							<Menu as="div" className="mx-3 relative">
 								<Menu.Button className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-									<BsFillEmojiSmileFill className="text-2xl mx-1 text-gray-500 cursor-pointer hover:bg-gray-200 rounded-full" />
+									<BsPerson className="text-2xl mx-1 text-gray-500 cursor-pointer hover:bg-gray-200 rounded-full" />
 								</Menu.Button>
 
 								<Transition
@@ -267,11 +288,17 @@ export default function Layout({ children, session }: { children?: any; session?
 												Logout
 											</button>
 										</Form>
+										<Link
+											className="block px-4 py-2 text-sm text-gray-700"
+											to={"/account/my-profile"}
+										>
+											My profile
+										</Link>
 									</Menu.Items>
 								</Transition>
 							</Menu>
 							<label htmlFor="" className="text-gray-500 font-md">
-								{session?.user_name}
+								{session?.adminName}
 							</label>
 						</div>
 					</div>

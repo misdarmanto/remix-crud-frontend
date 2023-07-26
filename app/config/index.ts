@@ -1,8 +1,8 @@
 export const CONFIG = {
 	env: process.env.NODE_ENV || "development",
 	authorization: {
-		username: process.env.AUTHORIZATION_USERNAME || "sigmentasi",
-		passsword: process.env.AUTHORIZATION_PASSWORD || "S!gm3nt4s12022!",
+		username: process.env.AUTHORIZATION_USERNAME || "d4p1l",
+		passsword: process.env.AUTHORIZATION_PASSWORD || "d4p1l2023",
 	},
 	asset: {
 		authorization: {
@@ -14,5 +14,5 @@ export const CONFIG = {
 		secret: process.env.SESSION_SECRET || "sigmentasi-session-secret",
 		name: process.env.SESSION_NAME || "sigmentasi-session",
 	},
-	base_url_api: "http://localhost:6005",
+	base_url_api: "http://localhost:8000",
 };

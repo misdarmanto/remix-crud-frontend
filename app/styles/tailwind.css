@@ -902,8 +902,8 @@ video {
   width: auto;
 }
 
-.w-60 {
-  width: 15rem;
+.w-64 {
+  width: 16rem;
 }
 
 .w-fit {
@@ -933,10 +933,6 @@ video {
 
 .w-7 {
   width: 1.75rem;
-}
-
-.w-64 {
-  width: 16rem;
 }
 
 .w-8 {
@@ -2781,16 +2777,16 @@ video {
     margin-top: 1rem;
   }
 
-  .md\:mb-0 {
-    margin-bottom: 0px;
-  }
-
   .md\:ml-4 {
     margin-left: 1rem;
   }
 
   .md\:mt-0 {
     margin-top: 0px;
+  }
+
+  .md\:mb-0 {
+    margin-bottom: 0px;
   }
 
   .md\:block {

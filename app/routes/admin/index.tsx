@@ -268,7 +268,7 @@ export default function Index(): ReactElement {
 				method="get"
 			>
 				<div className="flex flex-col md:flex-row justify-between mb-2 md:px-0">
-					<div className="px-1 w-full flex flex-row justify-between md:justify-start">
+					<div className="px-1 w-full mb-2 flex flex-row justify-between md:justify-start">
 						<select
 							name="size"
 							defaultValue={loader?.table?.size}
@@ -292,7 +292,7 @@ export default function Index(): ReactElement {
 							</Link>
 						)}
 					</div>
-					<div className="w-full md:w-1/5">
+					<div className="w-full mb-2 md:w-1/5">
 						<input
 							defaultValue={loader?.table?.filter.search}
 							name="search"

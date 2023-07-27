@@ -9,14 +9,19 @@ export interface IUserModel extends IRootModel {
 	userKecamatan: IKecamatanModel;
 	userKabupaten: IKabupatenModel;
 	userPhoneNumber: string;
+	createdOn: string;
 }
 
 export interface IUserCreateRequestModel {
+	userId: string;
 	userName: string;
 	userDetailAddress: string;
 	userDesa: string;
+	userDesaId: string;
 	userKecamatan: string;
+	userKecamatanId: string;
 	userKabupaten: string;
+	userKabupatenId: string;
 	userPhoneNumber: string;
 }
 
@@ -25,7 +30,10 @@ export interface IUserUpdateRequestModel {
 	userName?: string;
 	userDetailAddress?: string;
 	userDesa?: string;
+	userDesaId?: string;
 	userKecamatan?: string;
+	userKecamatanId?: string;
 	userKabupaten?: string;
+	userKabupatenId?: string;
 	userPhoneNumber?: string;
 }

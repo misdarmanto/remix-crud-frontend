@@ -370,11 +370,11 @@ export default function Index(): ReactElement {
 				method="get"
 			>
 				<div className="flex flex-col md:flex-row justify-between mb-2 md:px-0">
-					<div className="px-1 w-full flex flex-row gap-2 justify-between md:justify-start">
+					<div className="px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start">
 						<select
 							name="size"
 							defaultValue={loader?.table?.size}
-							className="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+							className="block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
 						>
 							<option value="2">2</option>
 							<option value="5">5</option>
@@ -401,7 +401,7 @@ export default function Index(): ReactElement {
 							</button>
 						)}
 					</div>
-					<div className="w-full md:w-1/5">
+					<div className="w-full  md:w-1/5">
 						<input
 							defaultValue={loader?.table?.filter.search}
 							name="search"

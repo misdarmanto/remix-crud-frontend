@@ -52,8 +52,11 @@ export let action: ActionFunction = async ({ request }) => {
 				userPhoneNumber: formData.get("userPhoneNumber"),
 				userDetailAddress: formData.get("userDetailAddress"),
 				userDesa: formData.get("userDesa"),
+				userDesaId: formData.get("userDesaId"),
 				userKecamatan: formData.get("userKecamatan"),
+				userKecamatanId: formData.get("userKecamatanId"),
 				userKabupaten: formData.get("userKabupaten"),
+				userKabupatenId: formData.get("userKabupatenId"),
 			};
 
 			const result = await API.post(
@@ -266,6 +269,7 @@ export default function Index() {
 				</div>
 
 				<input hidden name="userDesa" value={desaSelected?.desaName} />
+				<input hidden name="userDesaId" value={desaSelected?.desaId} />
 				<input
 					hidden
 					name="userKecamatan"
@@ -273,8 +277,18 @@ export default function Index() {
 				/>
 				<input
 					hidden
+					name="userKecamatanId"
+					value={kecamatanSelected?.kecamatanId}
+				/>
+				<input
+					hidden
 					name="userKabupaten"
 					value={kabupatenSelected?.kabupatenName}
+				/>
+				<input
+					hidden
+					name="userKabupatenId"
+					value={kabupatenSelected?.kabupatenId}
 				/>
 
 				<div className="flex justify-end mt-4">

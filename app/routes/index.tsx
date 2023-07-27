@@ -7,6 +7,7 @@ import { DatabaseIcon } from "@heroicons/react/outline";
 import { API } from "~/services/api";
 import { CONFIG } from "~/config";
 import { IStatisticModel } from "~/models/statisticModel";
+import Chart from "react-google-charts";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -41,6 +42,18 @@ export default function Index() {
 	const navigation = [{ title: "Dashboard", href: "", active: true }];
 	const statistic: IStatisticModel = loader.statistic;
 
+	const kabupaten = [
+		["Task", "Hours per Day"],
+		["Pemalang", statistic.totalKabupatenPemalang],
+		["Kota Pekalongan", statistic.totalKotaPekalongan],
+		["Kabupaten Pekalongan", statistic.totalKabupatenPekalongan],
+		["Kabupaten Batang", statistic.totalKabupatenBatang],
+	];
+
+	const kabupatenOptions = {
+		title: "Kabupaten/Kota",
+	};
+
 	return (
 		<div>
 			<Breadcrumb title="Dashboard" navigation={navigation} />
@@ -56,19 +69,19 @@ export default function Index() {
 				<Card className="bg-teal-500">
 					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
 					<p className="font-extrabold text-white">
-						{statistic.totalKabupatenPemalang} Pemalang
+						{statistic.totalKabupatenPemalang} Kabupaten Pemalang
 					</p>
 				</Card>
 				<Card className="bg-indigo-500">
 					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
 					<p className="font-extrabold text-white">
-						{statistic.totalKabupatenPekalongan} Kota Pekalongan
+						{statistic.totalKabupatenPekalongan} Kabupaten Pekalongan
 					</p>
 				</Card>
 				<Card className="bg-blue-500">
 					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
 					<p className="font-extrabold text-white">
-						{statistic.totalKotaPekalongan} Kabupaten Pekalongan
+						{statistic.totalKotaPekalongan} Kota Pekalongan
 					</p>
 				</Card>
 				<Card className="bg-rose-500">
@@ -78,13 +91,23 @@ export default function Index() {
 					</p>
 				</Card>
 			</div>
+
+			<div className="p-5 rounded-lg shadow bg-white">
+				<Chart
+					chartType="PieChart"
+					data={kabupaten}
+					options={kabupatenOptions}
+					width={"100%"}
+					height={"400px"}
+				/>
+			</div>
 		</div>
 	);
 }
 
 const Card = ({ children, className }: { children: any; className?: string }) => (
 	<div
-		className={`${className} max-w-sm  mr-2 my-3 flex p-6 bg-white border rounded-lg shadow`}
+		className={`${className} w-full md:max-w-xs  sm:mr-2 my-2 sm:my-3 flex p-6 bg-white border rounded-lg shadow`}
 	>
 		{children}
 	</div>

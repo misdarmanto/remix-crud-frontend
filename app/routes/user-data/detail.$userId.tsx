@@ -69,6 +69,10 @@ export default function Index() {
 					<h3 className="text-lg font-semibold">Kabupaten : </h3>
 					<p className="text-gray-800">{detailUser.userKabupaten}</p>
 				</div>
+				<div className="flex gap-5 items-center my-5">
+					<h3 className="text-lg font-semibold">Dibuat pada : </h3>
+					<p className="text-gray-800">{detailUser.createdOn}</p>
+				</div>
 			</div>
 		</div>
 	);

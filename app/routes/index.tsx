@@ -1,4 +1,4 @@
-import { useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/router";
 import { Breadcrumb } from "~/components/breadcrumb";
@@ -6,7 +6,7 @@ import { checkSession } from "~/services/session";
 import { DatabaseIcon } from "@heroicons/react/outline";
 import { API } from "~/services/api";
 import { CONFIG } from "~/config";
-import { IStatisticModel } from "~/models/statisticModel";
+import { IStatisticKabupatenModel, IStatisticModel } from "~/models/statisticModel";
 import Chart from "react-google-charts";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
@@ -37,22 +37,20 @@ export default function Index() {
 		);
 	}
 
-	console.log(loader);
-
 	const navigation = [{ title: "Dashboard", href: "", active: true }];
-	const statistic: IStatisticModel = loader.statistic;
+	const statistic: IStatisticKabupatenModel[] = loader.statistic;
 
-	const kabupaten = [
-		["Task", "Hours per Day"],
-		["Pemalang", statistic.totalKabupatenPemalang],
-		["Kota Pekalongan", statistic.totalKotaPekalongan],
-		["Kabupaten Pekalongan", statistic.totalKabupatenPekalongan],
-		["Kabupaten Batang", statistic.totalKabupatenBatang],
-	];
+	const kabupaten: any = [["Task", "Hours per Day"]];
+
+	for (let i = 0; statistic.length > i; i++) {
+		kabupaten.push([statistic[i].kabupatenName, statistic[i].totalUser]);
+	}
 
 	const kabupatenOptions = {
 		title: "Kabupaten/Kota",
 	};
+
+	const bgColors = ["bg-teal-500", "bg-blue-500", "bg-indigo-500", "bg-rose-500"];
 
 	return (
 		<div>
@@ -66,30 +64,16 @@ export default function Index() {
 			</div>
 
 			<div className="flex flex-wrap my-5 gap-5">
-				<Card className="bg-teal-500">
-					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-					<p className="font-extrabold text-white">
-						{statistic.totalKabupatenPemalang} Kabupaten Pemalang
-					</p>
-				</Card>
-				<Card className="bg-indigo-500">
-					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-					<p className="font-extrabold text-white">
-						{statistic.totalKabupatenPekalongan} Kabupaten Pekalongan
-					</p>
-				</Card>
-				<Card className="bg-blue-500">
-					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-					<p className="font-extrabold text-white">
-						{statistic.totalKotaPekalongan} Kota Pekalongan
-					</p>
-				</Card>
-				<Card className="bg-rose-500">
-					<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-					<p className="font-extrabold text-white">
-						{statistic.totalKabupatenBatang} Kabupaten Batang
-					</p>
-				</Card>
+				{statistic.map((item, index: number) => (
+					<Link key={item.kabupatenId} to={`/kecamatan/${item.kabupatenId}`}>
+						<Card className={bgColors[index]}>
+							<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
+							<p className="font-extrabold text-white">
+								{item.kabupatenName} {item.totalUser}
+							</p>
+						</Card>
+					</Link>
+				))}
 			</div>
 
 			<div className="p-5 rounded-lg shadow bg-white">

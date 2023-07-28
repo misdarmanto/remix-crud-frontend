@@ -1573,6 +1573,10 @@ video {
   padding: 1rem;
 }
 
+.p-5 {
+  padding: 1.25rem;
+}
+
 .p-1 {
   padding: 0.25rem;
 }
@@ -1583,10 +1587,6 @@ video {
 
 .p-2\.5 {
   padding: 0.625rem;
-}
-
-.p-5 {
-  padding: 1.25rem;
 }
 
 .py-2 {

@@ -6,6 +6,7 @@ import { checkSession } from "~/services/session";
 import { Breadcrumb } from "~/components/breadcrumb";
 import { CONFIG } from "~/config";
 import { IUserModel } from "~/models/userModel";
+import { convertTime } from "~/utilities/convertTime";
 
 export let loader: LoaderFunction = async ({ request, params }) => {
 	const session: any = await checkSession(request);
@@ -71,7 +72,7 @@ export default function Index() {
 				</div>
 				<div className="flex gap-5 items-center my-5">
 					<h3 className="text-lg font-semibold">Dibuat pada : </h3>
-					<p className="text-gray-800">{detailUser.createdOn}</p>
+					<p className="text-gray-800">{convertTime(detailUser.createdOn)}</p>
 				</div>
 			</div>
 		</div>

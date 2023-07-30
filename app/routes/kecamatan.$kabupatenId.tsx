@@ -67,19 +67,22 @@ export default function Index() {
 			</div>
 
 			<div className="flex flex-wrap my-5 gap-5">
-				{statistic.map((item, index: number) => (
-					<Link
-						key={item.kabupatenId}
-						to={`/desa/${item.kecamatanId}/${item.kabupatenId}`}
-					>
-						<Card className={bgColors[index]}>
-							<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-							<p className="font-extrabold text-white">
-								KECAMATAN {item.kecamatan} {item.totalUser}
-							</p>
-						</Card>
-					</Link>
-				))}
+				{statistic.map((item, index: number) => {
+					bgColors.push(bgColors[index]);
+					return (
+						<Link
+							key={item.kabupatenId}
+							to={`/desa/${item.kecamatanId}/${item.kabupatenId}`}
+						>
+							<Card className={bgColors[index]}>
+								<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
+								<p className="font-extrabold text-white">
+									KECAMATAN {item.kecamatan} {item.totalUser}
+								</p>
+							</Card>
+						</Link>
+					);
+				})}
 			</div>
 
 			<div className="p-5 rounded-lg shadow bg-white">

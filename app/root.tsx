@@ -18,11 +18,6 @@ import { CONSOLE } from "./utilities/log";
 
 export const links: LinksFunction = () => {
 	return [
-		{
-			rel: "icon",
-			href: "https://asset.lenterailmu.id?dir=resources/icon/play_store_512.png",
-			type: "image/png",
-		},
 		{ rel: "stylesheet", href: rootStyles },
 		{ rel: "stylesheet", href: globalStyle },
 	];

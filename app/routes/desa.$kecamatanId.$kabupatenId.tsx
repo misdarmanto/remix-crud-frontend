@@ -71,14 +71,17 @@ export default function Index() {
 			</div>
 
 			<div className="flex flex-wrap my-5 gap-5">
-				{statistic.map((item, index: number) => (
-					<Card key={item.desaId} className={bgColors[index]}>
-						<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-						<p className="font-extrabold text-white">
-							DESA {item.desa} {item.totalUser}
-						</p>
-					</Card>
-				))}
+				{statistic.map((item, index: number) => {
+					bgColors.push(bgColors[index]);
+					return (
+						<Card key={item.desaId} className={bgColors[index]}>
+							<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
+							<p className="font-extrabold text-white">
+								DESA {item.desa} {item.totalUser}
+							</p>
+						</Card>
+					);
+				})}
 			</div>
 
 			<div className="p-5 rounded-lg shadow bg-white">

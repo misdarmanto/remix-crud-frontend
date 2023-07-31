@@ -4,15 +4,9 @@ export const CONFIG = {
 		username: process.env.AUTHORIZATION_USERNAME || "d4p1l",
 		passsword: process.env.AUTHORIZATION_PASSWORD || "d4p1l2023",
 	},
-	asset: {
-		authorization: {
-			username: process.env.AUTHORIZATION_ASSET_USERNAME || "sigmentasi_assets",
-			passsword: process.env.AUTHORIZATION_ASSET_PASSWORD || "sigmentasi_assets",
-		},
-	},
 	session: {
-		secret: process.env.SESSION_SECRET || "sigmentasi-session-secret",
-		name: process.env.SESSION_NAME || "sigmentasi-session",
+		secret: process.env.SESSION_SECRET || "session-secret",
+		name: process.env.SESSION_NAME || "session",
 	},
 	base_url_api: "http://localhost:8000",
 };

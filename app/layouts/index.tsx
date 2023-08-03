@@ -4,9 +4,10 @@ import {
 	XIcon,
 	CogIcon,
 	UserIcon,
+	UserGroupIcon,
 } from "@heroicons/react/outline";
 import { IoMdNotifications } from "react-icons/io";
-import { BsPerson } from "react-icons/bs";
+import { BsList, BsPerson } from "react-icons/bs";
 import { Fragment, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Disclosure } from "@headlessui/react";
@@ -37,6 +38,12 @@ export default function Layout({
 		href: "user-data/?size=10",
 	};
 
+	const relawan = {
+		name: "Tim Relawan",
+		icon: BsList,
+		href: "relawan-tim/?size=10",
+	};
+
 	const myProfile = {
 		name: "Profile",
 		icon: UserIcon,
@@ -45,7 +52,7 @@ export default function Layout({
 
 	const admin = { name: "Admin", icon: UsersIcon, href: "admin" };
 
-	const NAVIGATIONS_LIST = [dashboard, data];
+	const NAVIGATIONS_LIST = [dashboard, data, relawan];
 
 	if (session?.adminRole === "superAdmin") {
 		NAVIGATIONS_LIST.push(admin);
@@ -232,15 +239,11 @@ export default function Layout({
 		</Transition.Root>
 	);
 
-	const [open, setOpen] = useState(false);
-
 	const renderDesktopMenu = (
 		<div className="h-screen flex overflow-hidden bg-white">
 			<div className="hidden bg-white md:flex md:flex-shrink-0">
 				<div
-					className={`${
-						open ? "w-64" : "w-fit"
-					} sm:block relative h-screen duration-100 border-r border-gray-200 px-3`}
+					className={`w-56 sm:block relative h-screen duration-100 border-r border-gray-200 px-3`}
 				>
 					<div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
 						<h1 className="text-md text-gray-700">

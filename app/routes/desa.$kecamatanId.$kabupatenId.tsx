@@ -6,11 +6,7 @@ import { checkSession } from "~/services/session";
 import { DatabaseIcon } from "@heroicons/react/outline";
 import { API } from "~/services/api";
 import { CONFIG } from "~/config";
-import {
-	IStatisticDesaModel,
-	IStatisticKecamatanModel,
-	IStatisticModel,
-} from "~/models/statisticModel";
+import { IStatisticDesaModel } from "~/models/statisticModel";
 import Chart from "react-google-charts";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
@@ -44,8 +40,10 @@ export default function Index() {
 		);
 	}
 
+	console.log(loader);
+
 	const navigation = [{ title: "Dashboard", href: "", active: true }];
-	const statistic: IStatisticDesaModel[] = loader.statistic;
+	const statistic: IStatisticDesaModel[] = loader.statistic.total;
 
 	const desa: any = [["Task", "Hours per Day"]];
 
@@ -74,12 +72,14 @@ export default function Index() {
 				{statistic.map((item, index: number) => {
 					bgColors.push(bgColors[index]);
 					return (
-						<Card key={item.desaId} className={bgColors[index]}>
-							<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
-							<p className="font-extrabold text-white">
-								DESA {item.desa} {item.totalUser}
-							</p>
-						</Card>
+						<Link key={item.kabupatenId} to={`/user/${item.desaId}`}>
+							<Card key={item.desaId} className={bgColors[index]}>
+								<DatabaseIcon className="text-white group-hover:text-white mr-3 flex-shrink-0 h-6 w-6" />
+								<p className="font-extrabold text-white">
+									DESA {item.desa} {item.totalUser}
+								</p>
+							</Card>
+						</Link>
 					);
 				})}
 			</div>

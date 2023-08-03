@@ -6,7 +6,7 @@ import { checkSession } from "~/services/session";
 import { DatabaseIcon } from "@heroicons/react/outline";
 import { API } from "~/services/api";
 import { CONFIG } from "~/config";
-import { IStatisticKabupatenModel, IStatisticModel } from "~/models/statisticModel";
+import { IStatisticKabupatenModel } from "~/models/statisticModel";
 import Chart from "react-google-charts";
 
 export let loader: LoaderFunction = async ({ params, request }) => {

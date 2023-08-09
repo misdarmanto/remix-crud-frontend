@@ -74,6 +74,17 @@ export default function Index() {
 					<h3 className="text-lg font-semibold">Dibuat pada : </h3>
 					<p className="text-gray-800">{convertTime(detailUser.createdOn)}</p>
 				</div>
+				<div className="flex gap-5 items-center my-5">
+					<h3 className="text-lg font-semibold">Tim Relawan : </h3>
+					<p className="text-gray-800">
+						{detailUser.userRelawanTimName || "_"}
+					</p>
+				</div>
+
+				<div className="flex gap-5 items-center my-5">
+					<h3 className="text-lg font-semibold">Nama Relawan : </h3>
+					<p className="text-gray-800">{detailUser.userRelawanName || "_"}</p>
+				</div>
 			</div>
 		</div>
 	);

@@ -9,7 +9,10 @@ export interface IUserModel extends IRootModel {
 	userKecamatan: IKecamatanModel;
 	userKabupaten: IKabupatenModel;
 	userPhoneNumber: string;
+	userRelawanTimName: string;
+	userRelawanName: string;
 	createdOn: string;
+	relawanTime?: IRelawanModel;
 }
 
 export interface IUserCreateRequestModel {
@@ -23,6 +26,8 @@ export interface IUserCreateRequestModel {
 	userKabupaten: string;
 	userKabupatenId: string;
 	userPhoneNumber: string;
+	userRelawanTimName?: string;
+	userRelawanName?: string;
 }
 
 export interface IUserUpdateRequestModel {
@@ -36,4 +41,10 @@ export interface IUserUpdateRequestModel {
 	userKabupaten?: string;
 	userKabupatenId?: string;
 	userPhoneNumber?: string;
+	userRelawanTimName?: string;
+	userRelawanName?: string;
+}
+
+export interface IRelawanModel {
+	relawanTimName: string;
 }

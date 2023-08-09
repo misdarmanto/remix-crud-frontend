@@ -1,12 +1,12 @@
 export const CONFIG = {
-	env: process.env.NODE_ENV || "development",
+	env: process.env.APP_ENV,
 	authorization: {
-		username: process.env.AUTHORIZATION_USERNAME || "d4p1l",
-		passsword: process.env.AUTHORIZATION_PASSWORD || "d4p1l2023",
+		username: process.env.AUTHORIZATION_USERNAME,
+		passsword: process.env.AUTHORIZATION_PASSWORD,
 	},
 	session: {
 		secret: process.env.SESSION_SECRET || "session-secret",
 		name: process.env.SESSION_NAME || "session",
 	},
-	base_url_api: "http://localhost:8000",
+	base_url_api: process.env.BASE_API_URL,
 };

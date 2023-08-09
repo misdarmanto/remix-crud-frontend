@@ -2,17 +2,15 @@ import {
 	HomeIcon,
 	MenuAlt2Icon,
 	XIcon,
-	CogIcon,
 	UserIcon,
+	ChartBarIcon,
 	UserGroupIcon,
+	ChartPieIcon,
 } from "@heroicons/react/outline";
-import { IoMdNotifications } from "react-icons/io";
-import { BsList, BsPerson } from "react-icons/bs";
+import { BsLayers, BsPerson } from "react-icons/bs";
 import { Fragment, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Disclosure } from "@headlessui/react";
-
-import { DatabaseIcon, KeyIcon, UsersIcon } from "@heroicons/react/solid";
 import { NavLink } from "react-router-dom";
 import { Form, Link } from "@remix-run/react";
 import { ISessionModel } from "~/models/sessionModel";
@@ -34,14 +32,20 @@ export default function Layout({
 
 	const data = {
 		name: "Data Pemilu",
-		icon: DatabaseIcon,
+		icon: ChartPieIcon,
 		href: "user-data/?size=10",
 	};
 
 	const relawan = {
 		name: "Tim Relawan",
-		icon: BsList,
+		icon: BsLayers,
 		href: "relawan-tim/?size=10",
+	};
+
+	const belumTerdaftar = {
+		name: "Belum Terdaftar",
+		icon: ChartBarIcon,
+		href: "region/unregistered/?size=10",
 	};
 
 	const myProfile = {
@@ -50,9 +54,9 @@ export default function Layout({
 		href: "account/my-profile",
 	};
 
-	const admin = { name: "Admin", icon: UsersIcon, href: "admin" };
+	const admin = { name: "Admin", icon: UserGroupIcon, href: "admin" };
 
-	const NAVIGATIONS_LIST = [dashboard, data, relawan];
+	const NAVIGATIONS_LIST = [dashboard, data, belumTerdaftar, relawan];
 
 	if (session?.adminRole === "superAdmin") {
 		NAVIGATIONS_LIST.push(admin);

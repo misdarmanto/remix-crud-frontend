@@ -21,6 +21,7 @@ import { ISessionModel } from "~/models/sessionModel";
 import axios from "axios";
 import moment from "moment";
 import * as XLSX from "xlsx";
+import { convertTime } from "~/utilities/convertTime";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -144,7 +145,9 @@ export default function Index(): ReactElement {
 					userDesa: value.userDesa,
 					userKecamatan: value.userKecamatan,
 					userKabupaten: value.userKabupaten,
-					createdOn: value.createdOn,
+					userRelawanTimName: value.userRelawanTimName,
+					userRelawanName: value.userRelawanName,
+					createdOn: convertTime(value.createdOn),
 				};
 				xlsRows.push(documentItem);
 			});
@@ -156,6 +159,8 @@ export default function Index(): ReactElement {
 				"Desa",
 				"Kecamatan",
 				"Kabupaten",
+				"Tim Relawan",
+				"Nama Relawan",
 				"Tgl Dibuat",
 			];
 			let createXLSLFormatObj = [];
@@ -168,6 +173,8 @@ export default function Index(): ReactElement {
 				innerRowData.push(value.userDesa);
 				innerRowData.push(value.userKecamatan);
 				innerRowData.push(value.userKabupaten);
+				innerRowData.push(value.userRelawanTimName);
+				innerRowData.push(value.userRelawanName);
 				innerRowData.push(value.createdOn);
 				createXLSLFormatObj.push(innerRowData);
 			});
@@ -205,24 +212,24 @@ export default function Index(): ReactElement {
 				</td>
 			),
 		},
-		{
-			title: "WA",
-			data: (data: IUserModel, index: number): ReactElement => (
-				<td key={index + "wa"} className="md:px-6 md:py-3">
-					{data.userPhoneNumber}
-				</td>
-			),
-		},
-		{
-			title: "alamat",
-			data: (data: IUserModel, index: number): ReactElement => (
-				<td key={index + "program-name"} className="md:px-6 md:py-3 break-all">
-					{data.userDetailAddress.length > 10
-						? data.userDetailAddress.slice(0, 10) + "....."
-						: data.userDetailAddress}
-				</td>
-			),
-		},
+		// {
+		// 	title: "WA",
+		// 	data: (data: IUserModel, index: number): ReactElement => (
+		// 		<td key={index + "wa"} className="md:px-6 md:py-3">
+		// 			{data.userPhoneNumber}
+		// 		</td>
+		// 	),
+		// },
+		// {
+		// 	title: "alamat",
+		// 	data: (data: IUserModel, index: number): ReactElement => (
+		// 		<td key={index + "program-name"} className="md:px-6 md:py-3 break-all">
+		// 			{data.userDetailAddress.length > 10
+		// 				? data.userDetailAddress.slice(0, 10) + "....."
+		// 				: data.userDetailAddress}
+		// 		</td>
+		// 	),
+		// },
 		{
 			title: "Desa",
 			data: (data: IUserModel, index: number): ReactElement => (
@@ -244,6 +251,22 @@ export default function Index(): ReactElement {
 			data: (data: IUserModel, index: number): ReactElement => (
 				<td key={index + "kabupaten"} className="md:px-6 md:py-3">
 					{data.userKabupaten}
+				</td>
+			),
+		},
+		{
+			title: "Tim Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "tim relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanTimName || "_"}
+				</td>
+			),
+		},
+		{
+			title: "Nama Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "nama relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanName || "_"}
 				</td>
 			),
 		},

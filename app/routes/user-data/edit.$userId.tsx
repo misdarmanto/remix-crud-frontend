@@ -12,7 +12,7 @@ import { checkSession } from "~/services/session";
 import { CONFIG } from "~/config";
 import { Breadcrumb } from "~/components/breadcrumb";
 import { ISessionModel } from "~/models/sessionModel";
-import { IUserCreateRequestModel, IUserModel } from "~/models/userModel";
+import { IRelawanModel, IUserCreateRequestModel, IUserModel } from "~/models/userModel";
 import { useEffect, useState } from "react";
 import { IDesaModel, IKabupatenModel, IKecamatanModel } from "~/models/regionModel";
 
@@ -39,8 +39,14 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 			CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
 		);
 
+		const relawanTim = await API.get(
+			session,
+			CONFIG.base_url_api + `/relawan-tim/all`
+		);
+
 		return {
 			user: result,
+			relawanTim,
 			kabupaten,
 			kecamatan,
 			desa,
@@ -72,6 +78,8 @@ export let action: ActionFunction = async ({ request }) => {
 				userKecamatanId: formData.get("userKecamatanId"),
 				userKabupaten: formData.get("userKabupaten"),
 				userKabupatenId: formData.get("userKabupatenId"),
+				userRelawanTimName: formData.get("userRelawanTimName"),
+				userRelawanName: formData.get("userRelawanName"),
 			};
 
 			console.log(payload);
@@ -101,7 +109,6 @@ export default function Index() {
 	const submit = useSubmit();
 	const transition = useTransition();
 	const actionData = useActionData();
-
 	const detailUser: IUserModel = loader.user;
 
 	const kabupaten: IKabupatenModel[] = loader.kabupaten;
@@ -117,11 +124,16 @@ export default function Index() {
 	const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>();
 	const [desaSelected, setDesaSelected] = useState<IDesaModel>();
 
+	const [relawanTim, setRelawanTim] = useState<IRelawanModel[]>([]);
+	const [relawanTimNameSelected, setRelawanTimNameSelected] = useState<string>("");
+
 	useEffect(() => {
 		const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === "11");
 		setKabupatenList(kabupaten);
 		setKecamatanList(filterKecamatan);
 		setDesaList(desa);
+		setRelawanTim(loader.relawanTim);
+		setRelawanTimNameSelected(detailUser.userRelawanTimName);
 	}, []);
 
 	useEffect(() => {
@@ -299,6 +311,47 @@ export default function Index() {
 						</div>
 					</div>
 				</div>
+
+				<div className="sm:my-6 flex flex-col sm:flex-row gap-5">
+					<div className="w-full sm:w-1/2">
+						<div className="my-2">
+							<label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+								Tim Relawan (optional)
+							</label>
+							<select
+								onChange={(e) =>
+									setRelawanTimNameSelected(e.target.value)
+								}
+								className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+							>
+								<option value={detailUser.userRelawanTimName}>
+									{detailUser.userRelawanTimName}
+								</option>
+								{relawanTim.map((item: IRelawanModel, index: number) => (
+									<option key={index} value={item.relawanTimName}>
+										{item.relawanTimName}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+					<div className="w-full sm:w-1/2">
+						<div className="my-2">
+							<label className="block mb-2 text-sm font-medium text-gray-900">
+								Nama Relawan (optional)
+							</label>
+							<input
+								name="userRelawanName"
+								type="text"
+								className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
+								placeholder="nama..."
+								defaultValue={detailUser.userRelawanName}
+							/>
+						</div>
+					</div>
+				</div>
+
+				<input hidden name="userRelawanTimName" value={relawanTimNameSelected} />
 
 				<input hidden name="userDesa" value={desaSelected?.desaName} />
 				<input hidden name="userDesaId" value={desaSelected?.desaId} />

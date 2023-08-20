@@ -141,8 +141,6 @@ export default function Index() {
 		}
 	}, [kecamatanSelected, kabupatenSelected]);
 
-	console.log(loader);
-
 	const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
 		submit(e.currentTarget, {
 			method: "post",
@@ -310,7 +308,6 @@ export default function Index() {
 								name="userRelawanName"
 								type="text"
 								className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 "
-								required
 								placeholder="nama..."
 							/>
 						</div>

@@ -150,11 +150,11 @@ export default function Index(): ReactElement {
 							Hapus
 						</button>
 						&nbsp;
-						{/* <Link to={`/admin/edit/${data.relawanTimId}`}>
+						<Link to={`/relawan-tim/edit/${data.relawanTimId}`}>
 							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
 								Edit
 							</button>
-						</Link> */}
+						</Link>
 					</div>
 					{/* Mobile only  */}
 					<div className="block md:hidden relative">
@@ -197,14 +197,14 @@ export default function Index(): ReactElement {
 								className="py-1"
 								aria-labelledby={`dropdownButton-${index}`}
 							>
-								{/* <li>
+								<li>
 									<Link
-										to={`/admin/edit/${data.relawanTimId}`}
+										to={`/relawan-tim/edit/${data.relawanTimId}`}
 										className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
 									>
 										Edit
 									</Link>
-								</li> */}
+								</li>
 								<li>
 									<button
 										onClick={() => {

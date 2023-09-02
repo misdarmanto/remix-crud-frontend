@@ -45,11 +45,11 @@ export default function Layout({
 	const waBlasMenu = {
 		name: "Wa Blas",
 		icon: BsWhatsapp,
-		href: "wablas/?size=10",
+		href: "wa-blas/?size=10",
 		children: [
-			{ name: "broadcast", href: "wablas/broadcast" },
-			{ name: "history", href: "wablas/history" },
-			{ name: "pengaturan", href: "wablas/setting" },
+			{ name: "broadcast", href: "wa-blas/broadcast" },
+			{ name: "history", href: "wa-blas/history" },
+			{ name: "pengaturan", href: "wa-blas/setting" },
 		],
 	};
 

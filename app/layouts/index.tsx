@@ -7,7 +7,7 @@ import {
 	UserGroupIcon,
 	ChartPieIcon,
 } from "@heroicons/react/outline";
-import { BsLayers, BsPerson } from "react-icons/bs";
+import { BsLayers, BsPerson, BsWhatsapp } from "react-icons/bs";
 import { Fragment, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import { Disclosure } from "@headlessui/react";
@@ -42,6 +42,17 @@ export default function Layout({
 		href: "relawan-tim/?size=10",
 	};
 
+	const waBlasMenu = {
+		name: "Wa Blas",
+		icon: BsWhatsapp,
+		href: "wablas/?size=10",
+		children: [
+			{ name: "broadcast", href: "wablas/broadcast" },
+			{ name: "history", href: "wablas/history" },
+			{ name: "pengaturan", href: "wablas/setting" },
+		],
+	};
+
 	const belumTerdaftar = {
 		name: "Belum Terdaftar",
 		icon: ChartBarIcon,
@@ -56,7 +67,7 @@ export default function Layout({
 
 	const admin = { name: "Admin", icon: UserGroupIcon, href: "admin" };
 
-	const NAVIGATIONS_LIST = [dashboard, data, belumTerdaftar, relawan];
+	const NAVIGATIONS_LIST = [dashboard, data, waBlasMenu, belumTerdaftar, relawan];
 
 	if (session?.adminRole === "superAdmin") {
 		NAVIGATIONS_LIST.push(admin);
@@ -70,7 +81,7 @@ export default function Layout({
 		return (
 			<>
 				{!item.children && (
-					<div key={item.name}>
+					<div key={item.name} className="space-y-1 mx-1">
 						<NavLink
 							style={({ isActive }) =>
 								isActive ? { backgroundColor: "#f3f3f3" } : undefined
@@ -105,7 +116,7 @@ export default function Layout({
 					<Disclosure
 						as="div"
 						key={item.name}
-						className="space-y-1"
+						className="space-y-1 mx-1"
 						defaultOpen={item.current}
 					>
 						{({ open }) => {
@@ -227,13 +238,7 @@ export default function Layout({
 								</button>
 							</div>
 						</Transition.Child>
-						{/* <div className="flex-shrink-0 flex items-center px-4">
-							<img
-								className="h-14 w-auto"
-								src="https://asset.lenterailmu.id?dir=resources/icon/Screen%20Shot%202022-04-16%20at%2010.56.12.png"
-								alt="sigmentasi"
-							/>
-						</div> */}
+
 						<div className="mt-5 flex-1 h-0 overflow-y-auto scrollbar-hide">
 							<nav className="px-2 space-y-1">{renderListNavigation}</nav>
 						</div>

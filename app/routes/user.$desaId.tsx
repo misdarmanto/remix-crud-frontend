@@ -217,6 +217,23 @@ export default function Index(): ReactElement {
 				</td>
 			),
 		},
+
+		{
+			title: "Tim Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "tim relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanTimName || "_"}
+				</td>
+			),
+		},
+		{
+			title: "Nama Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "nama relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanName || "_"}
+				</td>
+			),
+		},
 	];
 
 	return (

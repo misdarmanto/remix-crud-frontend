@@ -16,7 +16,6 @@ import { CONFIG } from "~/config";
 import { CONSOLE } from "~/utilities/log";
 import { Modal } from "~/components/Modal";
 import { Breadcrumb } from "~/components/breadcrumb";
-import { IAdminModel } from "~/models/adminModel";
 import { convertTime } from "~/utilities/convertTime";
 import { ISessionModel } from "~/models/sessionModel";
 import { IRelawanModel } from "~/models/relawanTimModel";
@@ -33,7 +32,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 	try {
 		const result = await API.getTableData({
 			session: session,
-			url: CONFIG.base_url_api + "/relawan-tim/list",
+			url: CONFIG.base_url_api + `/relawan-tim/members/${params.name}`,
 			pagination: true,
 			page: +page || 0,
 			size: +size || 10,
@@ -43,7 +42,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 		});
 		return {
 			table: {
-				link: "relawan-tim",
+				link: `relawan-tim/members/${params.name}`,
 				data: result,
 				page: page,
 				size: size,
@@ -153,12 +152,6 @@ export default function Index(): ReactElement {
 						<Link to={`/relawan-tim/edit/${data.relawanTimId}`}>
 							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
 								Edit
-							</button>
-						</Link>
-						&nbsp;
-						<Link to={`/relawan-tim/member/${data.relawanTimName}`}>
-							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
-								Member
 							</button>
 						</Link>
 					</div>

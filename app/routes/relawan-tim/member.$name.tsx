@@ -19,6 +19,7 @@ import { Breadcrumb } from "~/components/breadcrumb";
 import { convertTime } from "~/utilities/convertTime";
 import { ISessionModel } from "~/models/sessionModel";
 import { IRelawanModel } from "~/models/relawanTimModel";
+import { IUserModel } from "~/models/userModel";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -104,7 +105,7 @@ export default function Index(): ReactElement {
 	const header: TableHeader[] = [
 		{
 			title: "No",
-			data: (data: IRelawanModel, index: number): ReactElement => (
+			data: (data: IUserModel, index: number): ReactElement => (
 				<td
 					key={index + "-photo"}
 					className="md:px-6 md:py-3 w-auto mb-4 md:mb-0 "
@@ -115,113 +116,53 @@ export default function Index(): ReactElement {
 		},
 		{
 			title: "Nama",
-			data: (data: IRelawanModel, index: number): ReactElement => (
-				<td key={index + "name"} className="md:px-2 md:py-3">
-					{data.relawanTimName}
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "userName"} className="md:px-6 md:py-3 ">
+					{data.userName}
 				</td>
 			),
 		},
 		{
-			title: "Di buat pada",
-			data: (data: IRelawanModel, index: number): ReactElement => (
-				<td key={index + "createdAt"} className="md:px-2 md:py-3">
-					{convertTime(data.createdOn)}
+			title: "Tim Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "tim relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanTimName || "_"}
+				</td>
+			),
+		},
+		{
+			title: "Nama Relawan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "nama relawan"} className="md:px-6 md:py-3">
+					{data.userRelawanName || "_"}
+				</td>
+			),
+		},
+		{
+			title: "Desa",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "desa"} className="md:px-6 md:py-3">
+					{data.userDesa}
+				</td>
+			),
+		},
+		{
+			title: "Kecamatan",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "kecamatan"} className="md:px-6 md:py-3">
+					{data.userKecamatan}
+				</td>
+			),
+		},
+		{
+			title: "Kabupaten",
+			data: (data: IUserModel, index: number): ReactElement => (
+				<td key={index + "kabupaten"} className="md:px-6 md:py-3">
+					{data.userKabupaten}
 				</td>
 			),
 		},
 	];
-
-	if (session.adminRole === "superAdmin") {
-		header.push({
-			title: "Aksi",
-			action: true,
-			data: (data: IRelawanModel, index: number): ReactElement => (
-				<td key={index + "action"} className="md:px-2 md:py-3">
-					{/* Desktop only  */}
-					<div className="hidden md:block w-64">
-						<button
-							onClick={() => {
-								setModalData(data);
-								setModalDelete(true);
-							}}
-							className="bg-transparent m-1 hover:bg-red-500 text-red-700 hover:text-white py-1 px-2 border border-red-500 hover:border-transparent rounded"
-						>
-							Hapus
-						</button>
-						&nbsp;
-						<Link to={`/relawan-tim/edit/${data.relawanTimId}`}>
-							<button className="bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded">
-								Edit
-							</button>
-						</Link>
-					</div>
-					{/* Mobile only  */}
-					<div className="block md:hidden relative">
-						<button
-							id={`dropdownButton-${index}`}
-							onClick={() => {
-								if (index == mobileActionDropDown) {
-									setMobileActionDropdown(null);
-								} else {
-									setMobileActionDropdown(index);
-								}
-							}}
-							data-dropdown-toggle={`dropdown-${index}`}
-							type="button"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-6 w-6"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth="2"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"
-								/>
-							</svg>
-						</button>
-						<div
-							id={`dropdown-${index}`}
-							className={`${
-								mobileActionDropDown == index
-									? "absolute right-0"
-									: "hidden"
-							} z-10 w-44 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-white`}
-						>
-							<ul
-								className="py-1"
-								aria-labelledby={`dropdownButton-${index}`}
-							>
-								<li>
-									<Link
-										to={`/relawan-tim/edit/${data.relawanTimId}`}
-										className="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
-									>
-										Edit
-									</Link>
-								</li>
-								<li>
-									<button
-										onClick={() => {
-											setModalData(data);
-											setModalDelete(true);
-										}}
-										className="block w-full text-left py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
-									>
-										Hapus
-									</button>
-								</li>
-							</ul>
-						</div>
-					</div>
-				</td>
-			),
-		});
-	}
 
 	const [modalDelete, setModalDelete] = useState(false);
 	const [modalData, setModalData] = useState<IRelawanModel>();
@@ -231,7 +172,7 @@ export default function Index(): ReactElement {
 	};
 
 	const actionData = useActionData();
-	const navigation = [{ title: "Daftar", href: "", active: true }];
+	const navigation = [{ title: "Daftar Member", href: "", active: true }];
 
 	return (
 		<div className="">
@@ -266,16 +207,6 @@ export default function Index(): ReactElement {
 							<option value="100">100</option>
 						</select>
 						&nbsp;
-						{session.adminRole === "superAdmin" && (
-							<Link to={`add`}>
-								<button
-									type="button"
-									className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
-								>
-									Tambah Tim Relawan
-								</button>
-							</Link>
-						)}
 					</div>
 					<div className="w-full mb-2 md:w-1/5">
 						<input

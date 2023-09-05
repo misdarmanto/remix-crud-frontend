@@ -114,6 +114,7 @@ export default function Index(): ReactElement {
 				</td>
 			),
 		},
+
 		{
 			title: "Nama",
 			data: (data: IRelawanModel, index: number): ReactElement => (

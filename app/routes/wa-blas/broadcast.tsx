@@ -20,6 +20,7 @@ import { IUserModel } from "~/models/userModel";
 import { ISessionModel } from "~/models/sessionModel";
 import { IKabupatenModel, IKecamatanModel } from "~/models/regionModel";
 import { IWaBlasSettings } from "~/models/waBlas";
+import Button from "~/components/Button";
 
 export let loader: LoaderFunction = async ({ params, request }) => {
 	const session: any = await checkSession(request);
@@ -29,8 +30,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 	let search = url.searchParams.get("search") || "";
 	let size = url.searchParams.get("size") || 10;
 	let page = url.searchParams.get("page") || 0;
-	let kabupatenSelected = url.searchParams.get("kabupatenSelected") || "";
-	let kecamatanSelected = url.searchParams.get("kecamatanSelected") || "";
+	let kabupatenNameSelected = url.searchParams.get("kabupatenNameSelected") || "";
+	let kecamatanNameSelected = url.searchParams.get("kecamatanNameSelected") || "";
 
 	const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`);
 	const kecamatan = await API.get(
@@ -52,8 +53,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 			size: +size || 10,
 			filters: {
 				search: search || "",
-				userKabupaten: kabupatenSelected || "",
-				userKecamatan: kecamatanSelected || "",
+				userKabupaten: kabupatenNameSelected || "",
+				userKecamatan: kecamatanNameSelected || "",
 			},
 		});
 		return {
@@ -94,7 +95,8 @@ export let action: ActionFunction = async ({ request }) => {
 	try {
 		if (request.method == "POST") {
 			const payload: any = {
-				whatsAppMessage: formData.get("whatsAppMessage"),
+				kabupatenNameSelected: formData.get("kabupatenNameSelected") || "",
+				kecamatanNameSelected: formData.get("kecamatanNameSelected") || "",
 			};
 
 			await API.post(
@@ -113,7 +115,6 @@ export let action: ActionFunction = async ({ request }) => {
 export default function Index(): ReactElement {
 	const loader = useLoaderData();
 
-	console.log(loader);
 	if (loader.isError) {
 		return (
 			<h1 className="text-center font-bold text-xl text-red-600">
@@ -135,8 +136,8 @@ export default function Index(): ReactElement {
 	const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([]);
 	const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([]);
 
-	const [kabupatenSelected, setKabupatenSelected] = useState<IKabupatenModel>();
-	const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>();
+	const [kabupatenNameSelected, setKabupatenNameSelected] = useState("");
+	const [kecamatanNameSelected, setKecamatanNameSelected] = useState("");
 
 	const [defaultMessage, setDefaultMessage] = useState("");
 
@@ -150,15 +151,18 @@ export default function Index(): ReactElement {
 	}, []);
 
 	useEffect(() => {
-		if (kabupatenSelected) {
+		if (kabupatenNameSelected) {
+			const findKabupaten = kabupaten.find(
+				(item) => item.kabupatenName === kabupatenNameSelected
+			);
 			const filterKecamatan = kecamatan.filter(
-				(item) => item.kabupatenId === kabupatenSelected.kabupatenId
+				(item) => item.kabupatenId === findKabupaten?.kabupatenId
 			);
 			if (filterKecamatan.length !== 0) {
 				setKecamatanList(filterKecamatan);
 			}
 		}
-	}, [kabupatenSelected]);
+	}, [kabupatenNameSelected]);
 
 	useEffect(() => {
 		setDefaultMessage(waBlasSettings.waBlasSettingsMessage);
@@ -262,10 +266,8 @@ export default function Index(): ReactElement {
 							<option value="100">100</option>
 						</select>
 						<select
-							name="kabupatenSelected"
-							onChange={(e) =>
-								setKabupatenSelected(JSON.parse(e.target.value))
-							}
+							name="kabupatenNameSelected"
+							onChange={(e) => setKabupatenNameSelected(e.target.value)}
 							className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5"
 						>
 							<option value="">Pilih Kabupaten</option>
@@ -276,10 +278,8 @@ export default function Index(): ReactElement {
 							))}
 						</select>
 						<select
-							name="kecamatanSelected"
-							onChange={(e) =>
-								setKecamatanSelected(JSON.parse(e.target.value))
-							}
+							name="kecamatanNameSelected"
+							onChange={(e) => setKecamatanNameSelected(e.target.value)}
 							className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5"
 						>
 							<option value="">Pilih Kecamatan</option>
@@ -289,6 +289,13 @@ export default function Index(): ReactElement {
 								</option>
 							))}
 						</select>
+						<button
+							onClick={() => setOpenModal(true)}
+							type="button"
+							className="bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded"
+						>
+							Kirim
+						</button>
 					</div>
 
 					<div className="w-full md:w-1/5">
@@ -312,8 +319,17 @@ export default function Index(): ReactElement {
 				}}
 			>
 				<Form method={"post"} onSubmit={submitData}>
-					<input hidden name="whatsAppMessage" value={defaultMessage} />
-					Apakah anda yakin ingin membroadcast pesan ini?
+					<input
+						hidden
+						name="kabupatenNameSelected"
+						value={kabupatenNameSelected}
+					/>
+					<input
+						hidden
+						name="kecamatanNameSelected"
+						value={kecamatanNameSelected}
+					/>
+					Apakah anda yakin ingin membroadcast pesan ke pada pengguna tersebut?
 					<div className="flex flex-col md:flex-row mt-4">
 						<button
 							type="submit"

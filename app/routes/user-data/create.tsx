@@ -130,8 +130,6 @@ export default function Index() {
       setDesaSelected(history.desaSelected)
       console.log(history)
     }
-
-    console.log()
   }, [])
 
   useEffect(() => {

@@ -123,6 +123,17 @@ export default function Index() {
     setKecamatanList(filterKecamatan)
     setDesaList(desa)
     setRelawanTim(loader.relawanTim)
+
+    const getFiledHistory = localStorage.getItem('historyField')
+    if (getFiledHistory) {
+      const history: IHistoryField = JSON.parse(getFiledHistory)
+      setKabupatenSelected(history.kabupatenSelected)
+      setKecamatanSelected(history.kecamatanSelected)
+      setDesaSelected(history.desaSelected)
+      setRelawanTimNameSelected(history.relawanTimNameSelected)
+      setRelawanNameSelected(history.relawanNameSelected)
+      console.log(history)
+    }
   }, [])
 
   useEffect(() => {
@@ -148,6 +159,17 @@ export default function Index() {
   }, [kecamatanSelected, kabupatenSelected])
 
   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
+    const historyField = {
+      kabupatenSelected,
+      kecamatanSelected,
+      desaSelected,
+      relawanTim,
+      relawanTimNameSelected,
+      relawanNameSelected
+    }
+
+    localStorage.setItem('historyField', JSON.stringify(historyField))
+
     submit(e.currentTarget, {
       method: 'post',
       action: `/user-data/create`
@@ -156,7 +178,7 @@ export default function Index() {
 
   return (
     <div className=''>
-      <Breadcrumb title='Tambah Data' navigation={navigation} />
+      <Breadcrumb title='Tambah Data Otomatis' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}
@@ -289,41 +311,41 @@ export default function Index() {
           <div className='w-full sm:w-1/2'>
             <div className='my-2'>
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan
+                Tim Relawan (optional)
               </label>
               <select
                 onChange={(e) => setRelawanTimNameSelected(e.target.value)}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                <option>Pilih Jabatan</option>
-                {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
-                  (item, index: number) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  )
+                {relawanTimNameSelected ? (
+                  <option value={JSON.stringify(relawanTimNameSelected)}>
+                    {relawanTimNameSelected}
+                  </option>
+                ) : (
+                  <option>Pilih Tim Relawan</option>
                 )}
+
+                {relawanTim.map((item) => (
+                  <option key={item.relawanTimId} value={item.relawanTimName}>
+                    {item.relawanTimName}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
           <div className='w-full sm:w-1/2'>
             <div className='my-2'>
-              <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan Referrar
+              <label className='block mb-2 text-sm font-medium text-gray-900'>
+                Nama Relawan (optional)
               </label>
-              <select
-                onChange={(e) => setRelawanTimNameSelected(e.target.value)}
-                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
-              >
-                <option>Pilih Jabatan Referrar</option>
-                {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
-                  (item, index: number) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  )
-                )}
-              </select>
+              <input
+                name={relawanNameSelected}
+                defaultValue={relawanNameSelected}
+                onChange={(e) => setRelawanNameSelected(e.target.value)}
+                type='text'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 '
+                placeholder='nama...'
+              />
             </div>
           </div>
         </div>

@@ -150,7 +150,7 @@ export default function Index() {
   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
     submit(e.currentTarget, {
       method: 'post',
-      action: `/user-data/create`
+      action: `/user-data/create-manual`
     })
   }
 
@@ -309,13 +309,13 @@ export default function Index() {
           <div className='w-full sm:w-1/2'>
             <div className='my-2'>
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan Referrar
+                Jabatan referrer
               </label>
               <select
                 onChange={(e) => setRelawanTimNameSelected(e.target.value)}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                <option>Pilih Jabatan Referrar</option>
+                <option>Pilih Jabatan referrer</option>
                 {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
                   (item, index: number) => (
                     <option key={index} value={item}>

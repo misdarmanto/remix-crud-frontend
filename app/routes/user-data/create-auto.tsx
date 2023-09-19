@@ -33,7 +33,22 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   )
   const relawanTim = await API.get(session, CONFIG.base_url_api + `/relawan-tim/all`)
 
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search')
+  const userPosition = url.searchParams.get('userPosition')
+
+  console.log(url.searchParams)
+
+  let userReferrals = { items: [] }
+  if (search !== '' && search !== null) {
+    userReferrals = await API.get(
+      session,
+      `${CONFIG.base_url_api}/users/list?search=${search}&&userPosition=${userPosition}`
+    )
+  }
+
   return {
+    userReferrals,
     kabupaten,
     kecamatan,
     desa,
@@ -86,15 +101,11 @@ interface IHistoryField {
   relawanNameSelected: string
 }
 
-interface IUserReferrer {
-  userReferrerId: string
-  userReferrerName: string
-  userReferrerPosition: string
-}
-
 export default function Index() {
   const navigation = [{ title: 'data pemilu', href: '', active: true }]
   const loader = useLoaderData()
+
+  console.log(loader)
 
   if (loader.isError) {
     return (
@@ -124,6 +135,7 @@ export default function Index() {
   const [userReferrerPosition, setUserReferrerPosition] = useState<string>()
   const [userReferrerId, setUserReferrerId] = useState<string>()
   const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
+  const [isOpenModal, setIsOpenModal] = useState(false)
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
@@ -378,20 +390,15 @@ export default function Index() {
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
                 Nama Referrer
               </label>
-              <select
-                onChange={(e) => {
-                  setUserReferrerId(e.target.value)
-                  console.log(e.target.value)
-                }}
-                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
-              >
-                <option>Pilih Nama Referrer</option>
-                {userReferrerPositionList.map((item, index: number) => (
-                  <option key={index} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+              <input
+                onFocus={() => setIsOpenModal(true)}
+                type='text'
+                value={''}
+                name='owner_name'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500'
+                placeholder='Jack'
+                required
+              />
             </div>
           </div>
         </div>
@@ -411,10 +418,66 @@ export default function Index() {
             type='submit'
             className='inline-flex justify-center w-32 rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm'
           >
-            {transition?.submission ? 'Loading...' : 'Submit'}
+            Submit
           </button>
         </div>
       </Form>
+
+      {isOpenModal && (
+        <Modal
+          isOpenModal={isOpenModal}
+          setIsOpenModal={setIsOpenModal}
+          loader={loader}
+          userPosition={userReferrerPosition ?? ''}
+          onUserSelected={console.log}
+        />
+      )}
+    </div>
+  )
+}
+
+interface ModalTypes {
+  isOpenModal: any
+  setIsOpenModal: any
+  userPosition: string
+  loader: any
+  onUserSelected: any
+}
+
+const Modal = ({ isOpenModal, setIsOpenModal, userPosition, loader }: ModalTypes) => {
+  const submit = useSubmit()
+
+  return (
+    <div className='fixed inset-0 z-10'>
+      <div
+        className='fixed inset-0 w-full h-full bg-black opacity-10'
+        onClick={() => setIsOpenModal(!isOpenModal)}
+      ></div>
+      <div className='flex items-center min-h-screen px-4 py-8'>
+        <div className='relative h-64 flex max-w-xl p-8 mx-auto bg-white rounded-md shadow-lg'>
+          <div className='w-96 overflow-y-scroll'>
+            <Form
+              onChange={(e: any) =>
+                submit(e.currentTarget, { action: '/user-data/create-auto' })
+              }
+              method='get'
+            >
+              <div className='flex flex-row '>
+                <input type='hidden' value={userPosition} />
+                <input
+                  type='email'
+                  name='search'
+                  defaultValue={loader.search}
+                  className='bg-gray-50 border border-gray-300 mx-5 h-10 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500'
+                  placeholder='masukan e-mail'
+                  required
+                />
+              </div>
+            </Form>
+            <ul className='max-w-md  mx-5 divide-y divide-gray-200 mt-5 dark:divide-gray-700'></ul>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

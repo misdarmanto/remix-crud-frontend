@@ -61,7 +61,8 @@ export let action: ActionFunction = async ({ request }) => {
         userKabupaten: formData.get('userKabupaten'),
         userKabupatenId: formData.get('userKabupatenId'),
         userPosition: formData.get('userPosition'),
-        userReferrerId: formData.get('userReferrerId')
+        userReferrerId: formData.get('userReferrerId') ?? null,
+        userReferrerPosition: formData.get('userReferrerPosition') ?? null
       }
 
       console.log(payload)
@@ -88,6 +89,7 @@ interface IHistoryField {
 interface IUserReferrer {
   userReferrerId: string
   userReferrerName: string
+  userReferrerPosition: string
 }
 
 export default function Index() {
@@ -118,8 +120,10 @@ export default function Index() {
   const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>()
   const [desaSelected, setDesaSelected] = useState<IDesaModel>()
 
-  const [userReferre, setUserReferre] = useState<IUserReferrer>()
   const [userPosition, setUserPosition] = useState<string>()
+  const [userReferrerPosition, setUserReferrerPosition] = useState<string>()
+  const [userReferrerId, setUserReferrerId] = useState<string>()
+  const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
@@ -172,6 +176,30 @@ export default function Index() {
       action: `/user-data/create-auto`
     })
   }
+
+  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+
+  useEffect(() => {
+    switch (userPosition) {
+      case 'korwil':
+        setUserReferrerPositionList([])
+        break
+      case 'korcam':
+        setUserReferrerPositionList(['korwil'])
+        break
+      case 'kordes':
+        setUserReferrerPositionList(['korwil', 'korcam'])
+        break
+      case 'kortps':
+        setUserReferrerPositionList(['korwil', 'korcam', 'kordes'])
+        break
+      case 'pemilih':
+        setUserReferrerPositionList(['korwil', 'korcam', 'kordes', 'kortps'])
+        break
+      default:
+        break
+    }
+  }, [userPosition])
 
   return (
     <div className=''>
@@ -306,44 +334,61 @@ export default function Index() {
 
         <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
           <div className='w-full sm:w-1/2'>
-            <div className='my-2'>
-              <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan
-              </label>
-              <select
-                onChange={(e) => {
-                  setUserPosition(e.target.value)
-                  console.log(e.target.value)
-                }}
-                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
-              >
-                <option>Pilih Jabatan</option>
-                {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
-                  (item, index: number) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+            <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
+              Jabatan
+            </label>
+            <select
+              onChange={(e) => {
+                setUserPosition(e.target.value)
+                console.log(e.target.value)
+              }}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
+            >
+              <option>Pilih Jabatan</option>
+              {userPositionList.map((item, index: number) => (
+                <option key={index} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
+
+        <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
           <div className='w-full sm:w-1/2'>
             <div className='my-2'>
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
                 Jabatan Referrer
               </label>
               <select
-                onChange={(e) => setUserReferre(JSON.parse(e.target.value))}
+                onChange={(e) => setUserReferrerPosition(e.target.value)}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
                 <option>Pilih Jabatan Referrer</option>
-                {[
-                  { userReferrerName: 'user test1', userReferrerId: '324234' },
-                  { userReferrerName: 'user test2', userReferrerId: '3rrtr' }
-                ].map((item: any, index: number) => (
-                  <option key={index} value={JSON.stringify(item)}>
-                    {item.userReferrerName}
+                {userReferrerPositionList.map((item: any, index: number) => (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className='w-full sm:w-1/2'>
+            <div className='my-2'>
+              <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
+                Nama Referrer
+              </label>
+              <select
+                onChange={(e) => {
+                  setUserReferrerId(e.target.value)
+                  console.log(e.target.value)
+                }}
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
+              >
+                <option>Pilih Nama Referrer</option>
+                {userReferrerPositionList.map((item, index: number) => (
+                  <option key={index} value={item}>
+                    {item}
                   </option>
                 ))}
               </select>
@@ -351,7 +396,8 @@ export default function Index() {
           </div>
         </div>
 
-        <input hidden name='userReferrerId' value={userReferre?.userReferrerId} />
+        <input hidden name='userReferrerId' value={userReferrerId} />
+        <input hidden name='userReferrerPosition' value={userReferrerPosition} />
         <input hidden name='userPosition' value={userPosition} />
         <input hidden name='userDesa' value={desaSelected?.desaName} />
         <input hidden name='userDesaId' value={desaSelected?.desaId} />

@@ -38,7 +38,7 @@ export default function Layout({
   }
 
   const relawan = {
-    name: 'Tim Relawan',
+    name: 'Referral',
     icon: BsLayers,
     href: 'relawan-tim/?size=10'
   }

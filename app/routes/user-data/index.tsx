@@ -145,8 +145,8 @@ export default function Index(): ReactElement {
           userDesa: value.userDesa,
           userKecamatan: value.userKecamatan,
           userKabupaten: value.userKabupaten,
-          userRelawanTimName: value.userRelawanTimName,
-          userRelawanName: value.userRelawanName,
+          userReferrerName: value.userReferrerName,
+          userReferrerPosition: value.userReferrerPosition,
           createdOn: convertTime(value.createdOn)
         }
         xlsRows.push(documentItem)
@@ -173,8 +173,8 @@ export default function Index(): ReactElement {
         innerRowData.push(value.userDesa)
         innerRowData.push(value.userKecamatan)
         innerRowData.push(value.userKabupaten)
-        innerRowData.push(value.userRelawanTimName)
-        innerRowData.push(value.userRelawanName)
+        innerRowData.push(value.userReferrerName)
+        innerRowData.push(value.userReferrerPosition)
         innerRowData.push(value.createdOn)
         createXLSLFormatObj.push(innerRowData)
       })
@@ -197,14 +197,6 @@ export default function Index(): ReactElement {
 
   const header: TableHeader[] = [
     {
-      title: 'No',
-      data: (data: IUserModel, index: number): ReactElement => (
-        <td key={index + '-photo'} className='md:px-6 md:py-3 mb-4 md:mb-0'>
-          {index + 1}
-        </td>
-      )
-    },
-    {
       title: 'Nama',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'userName'} className='md:px-6 md:py-3 '>
@@ -212,24 +204,14 @@ export default function Index(): ReactElement {
         </td>
       )
     },
-    // {
-    // 	title: "WA",
-    // 	data: (data: IUserModel, index: number): ReactElement => (
-    // 		<td key={index + "wa"} className="md:px-6 md:py-3">
-    // 			{data.userPhoneNumber}
-    // 		</td>
-    // 	),
-    // },
-    // {
-    // 	title: "alamat",
-    // 	data: (data: IUserModel, index: number): ReactElement => (
-    // 		<td key={index + "program-name"} className="md:px-6 md:py-3 break-all">
-    // 			{data.userDetailAddress.length > 10
-    // 				? data.userDetailAddress.slice(0, 10) + "....."
-    // 				: data.userDetailAddress}
-    // 		</td>
-    // 	),
-    // },
+    {
+      title: 'Jabatan',
+      data: (data: IUserModel, index: number): ReactElement => (
+        <td key={index + 'position'} className='md:px-6 md:py-3 mb-4 md:mb-0'>
+          {data.userPosition}
+        </td>
+      )
+    },
     {
       title: 'Desa',
       data: (data: IUserModel, index: number): ReactElement => (
@@ -255,18 +237,18 @@ export default function Index(): ReactElement {
       )
     },
     {
-      title: 'Tim Relawan',
+      title: 'Nama Referrer',
       data: (data: IUserModel, index: number): ReactElement => (
-        <td key={index + 'tim relawan'} className='md:px-6 md:py-3'>
-          {data.userRelawanTimName || '_'}
+        <td key={index + 'referrer'} className='md:px-6 md:py-3'>
+          {data.userReferrerName || '_'}
         </td>
       )
     },
     {
-      title: 'Nama Relawan',
+      title: 'Jabatan Referrer',
       data: (data: IUserModel, index: number): ReactElement => (
-        <td key={index + 'nama relawan'} className='md:px-6 md:py-3'>
-          {data.userRelawanName || '_'}
+        <td key={index + 'jabatan referrer'} className='md:px-6 md:py-3'>
+          {data.userReferrerPosition || '_'}
         </td>
       )
     },

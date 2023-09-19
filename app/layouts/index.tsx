@@ -40,7 +40,7 @@ export default function Layout({
   const relawan = {
     name: 'Referral',
     icon: BsLayers,
-    href: 'relawan-tim/?size=10'
+    href: 'referral/?size=10'
   }
 
   const waBlasMenu = {

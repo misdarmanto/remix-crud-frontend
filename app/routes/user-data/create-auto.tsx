@@ -31,11 +31,10 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     session,
     CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
   )
-  const relawanTim = await API.get(session, CONFIG.base_url_api + `/relawan-tim/all`)
 
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
-  const userPosition = url.searchParams.get('userPosition')
+  const userReferrerPosition = url.searchParams.get('userReferrerPosition')
 
   console.log(url.searchParams)
 
@@ -43,7 +42,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   if (search !== '' && search !== null) {
     userReferrals = await API.get(
       session,
-      `${CONFIG.base_url_api}/users/list?search=${search}&&userPosition=${userPosition}`
+      `${CONFIG.base_url_api}/users/list?userPosition=${userReferrerPosition}&&search=${search}`
     )
   }
 
@@ -52,7 +51,6 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     kabupaten,
     kecamatan,
     desa,
-    relawanTim,
     session: session,
     isError: false
   }
@@ -77,10 +75,10 @@ export let action: ActionFunction = async ({ request }) => {
         userKabupatenId: formData.get('userKabupatenId'),
         userPosition: formData.get('userPosition'),
         userReferrerId: formData.get('userReferrerId') ?? null,
+        userReferrerName: formData.get('userReferrerName') ?? null,
         userReferrerPosition: formData.get('userReferrerPosition') ?? null
       }
 
-      console.log(payload)
       await API.post(session, CONFIG.base_url_api + '/users', payload)
 
       return redirect('/user-data')
@@ -116,7 +114,6 @@ export default function Index() {
   }
 
   const submit = useSubmit()
-  const transition = useTransition()
   const actionData = useActionData()
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
@@ -134,6 +131,7 @@ export default function Index() {
   const [userPosition, setUserPosition] = useState<string>()
   const [userReferrerPosition, setUserReferrerPosition] = useState<string>()
   const [userReferrerId, setUserReferrerId] = useState<string>()
+  const [userReferrerName, setUserReferrerName] = useState<string>()
   const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
   const [isOpenModal, setIsOpenModal] = useState(false)
 
@@ -212,6 +210,11 @@ export default function Index() {
         break
     }
   }, [userPosition])
+
+  const handleModalOnSelect = (item: { userId: string; userName: string }) => {
+    setUserReferrerId(item.userId)
+    setUserReferrerName(item.userName)
+  }
 
   return (
     <div className=''>
@@ -393,17 +396,17 @@ export default function Index() {
               <input
                 onFocus={() => setIsOpenModal(true)}
                 type='text'
-                value={''}
-                name='owner_name'
+                value={userReferrerName}
+                name='userReferrarName'
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500'
-                placeholder='Jack'
-                required
+                placeholder='nama'
               />
             </div>
           </div>
         </div>
 
         <input hidden name='userReferrerId' value={userReferrerId} />
+        <input hidden name='userReferrerName' value={userReferrerName} />
         <input hidden name='userReferrerPosition' value={userReferrerPosition} />
         <input hidden name='userPosition' value={userPosition} />
         <input hidden name='userDesa' value={desaSelected?.desaName} />
@@ -428,8 +431,8 @@ export default function Index() {
           isOpenModal={isOpenModal}
           setIsOpenModal={setIsOpenModal}
           loader={loader}
-          userPosition={userReferrerPosition ?? ''}
-          onUserSelected={console.log}
+          searchUserReferrer={userReferrerPosition ?? ''}
+          onSelected={handleModalOnSelect}
         />
       )}
     </div>
@@ -439,13 +442,24 @@ export default function Index() {
 interface ModalTypes {
   isOpenModal: any
   setIsOpenModal: any
-  userPosition: string
+  searchUserReferrer: string
   loader: any
-  onUserSelected: any
+  onSelected: any
 }
 
-const Modal = ({ isOpenModal, setIsOpenModal, userPosition, loader }: ModalTypes) => {
+const Modal = ({
+  isOpenModal,
+  setIsOpenModal,
+  searchUserReferrer,
+  loader,
+  onSelected
+}: ModalTypes) => {
   const submit = useSubmit()
+  const userReferrals = []
+
+  if (loader?.userReferrals?.items) {
+    userReferrals.push(...loader.userReferrals.items)
+  }
 
   return (
     <div className='fixed inset-0 z-10'>
@@ -463,7 +477,11 @@ const Modal = ({ isOpenModal, setIsOpenModal, userPosition, loader }: ModalTypes
               method='get'
             >
               <div className='flex flex-row '>
-                <input type='hidden' value={userPosition} />
+                <input
+                  type='hidden'
+                  name='searchUserReferrer'
+                  value={searchUserReferrer}
+                />
                 <input
                   type='email'
                   name='search'
@@ -474,7 +492,20 @@ const Modal = ({ isOpenModal, setIsOpenModal, userPosition, loader }: ModalTypes
                 />
               </div>
             </Form>
-            <ul className='max-w-md  mx-5 divide-y divide-gray-200 mt-5 dark:divide-gray-700'></ul>
+            <ul className='max-w-md  mx-5 divide-y divide-gray-200 mt-5 dark:divide-gray-700'>
+              {userReferrals.map((item, index: number) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    onSelected(item)
+                    setIsOpenModal(false)
+                  }}
+                  className='p-2 rounded-lg hover:bg-gray-100'
+                >
+                  {item.userName}
+                </div>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

@@ -1,12 +1,5 @@
 import { ReactElement, useEffect, useState } from 'react'
-import {
-  Form,
-  useLoaderData,
-  useSubmit,
-  useTransition,
-  Link,
-  useActionData
-} from '@remix-run/react'
+import { Form, useLoaderData, useSubmit, Link, useActionData } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
 import { API } from '~/services/api'
@@ -14,14 +7,9 @@ import { checkSession } from '~/services/session'
 import { Table, TableHeader } from '~/components/Table'
 import { CONFIG } from '~/config'
 import { CONSOLE } from '~/utilities/log'
-import { Modal } from '~/components/Modal'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
-import { ISessionModel } from '~/models/sessionModel'
-import axios from 'axios'
-import moment from 'moment'
-import * as XLSX from 'xlsx'
-import { convertTime } from '~/utilities/convertTime'
+import { IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
@@ -32,14 +20,27 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
 
+  let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
+  let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
+  let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
+
+  const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
+  const kecamatan = await API.get(
+    session,
+    CONFIG.base_url_api + `/region/kecamatan?kabupatenId=11`
+  )
+
   try {
     const result = await API.getTableData({
       session: session,
-      url: CONFIG.base_url_api + '/users/list',
+      url: CONFIG.base_url_api + '/users/referrals',
       pagination: true,
       page: +page || 0,
       size: +size || 10,
       filters: {
+        userKabupaten: kabupatenNameSelected || '',
+        userKecamatan: kecamatanNameSelected || '',
+        userPosition: userPositionSelected || '',
         search: search || ''
       }
     })
@@ -50,6 +51,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         page: page,
         size: size,
         filter: {
+          userKabupaten: kabupatenNameSelected || '',
+          userKecamatan: kecamatanNameSelected || '',
+          userPosition: userPositionSelected || '',
           search: search
         }
       },
@@ -61,6 +65,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         }
       },
       session: session,
+      kabupaten,
+      kecamatan,
       isError: false
     }
   } catch (error: any) {
@@ -104,11 +110,9 @@ export default function Index(): ReactElement {
   }
 
   const submit = useSubmit()
-  const transition = useTransition()
   const [mobileActionDropDown, setMobileActionDropdown] = useState<number | null>()
 
   const actionData = useActionData()
-  const session: ISessionModel = loader.session
 
   const navigation = [{ title: 'data referral', href: '', active: true }]
 
@@ -116,76 +120,36 @@ export default function Index(): ReactElement {
     setMobileActionDropdown(null)
   }, [])
 
-  const download = async () => {
-    try {
-      const result = await axios.get(
-        `${loader.API.baseUrl}/users/list?pagination=false`,
-        {
-          auth: {
-            username: loader.API.authorization.username,
-            password: loader.API.authorization.password
-          }
-        }
+  const kabupaten: IKabupatenModel[] = loader.kabupaten
+  const kecamatan: IKecamatanModel[] = loader.kecamatan
+
+  const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
+  const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
+
+  const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
+  const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
+
+  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+
+  useEffect(() => {
+    const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
+    setKabupatenList(kabupaten)
+    setKecamatanList(filterKecamatan)
+  }, [])
+
+  useEffect(() => {
+    if (kabupatenNameSelected) {
+      const findKabupaten = kabupaten.find(
+        (item) => item.kabupatenName === kabupatenNameSelected
       )
-
-      let xlsRows: any[] = []
-      await result.data.data.items.map((value: IUserModel, index: number) => {
-        let documentItem = {
-          userName: value.userName,
-          userPhoneNumber: value.userPhoneNumber,
-          userDetailAddress: value.userDetailAddress,
-          userDesa: value.userDesa,
-          userKecamatan: value.userKecamatan,
-          userKabupaten: value.userKabupaten,
-          userReferrerName: value.userReferrerName,
-          userReferrerPosition: value.userReferrerPosition,
-          createdOn: convertTime(value.createdOn)
-        }
-        xlsRows.push(documentItem)
-      })
-
-      let xlsHeader = [
-        'Nama',
-        'WA',
-        'Alamat',
-        'Desa',
-        'Kecamatan',
-        'Kabupaten',
-        'Tim Relawan',
-        'Nama Relawan',
-        'Tgl Dibuat'
-      ]
-      let createXLSLFormatObj = []
-      createXLSLFormatObj.push(xlsHeader)
-      xlsRows.map((value: IUserModel, i) => {
-        let innerRowData = []
-        innerRowData.push(value.userName)
-        innerRowData.push(value.userPhoneNumber)
-        innerRowData.push(value.userDetailAddress)
-        innerRowData.push(value.userDesa)
-        innerRowData.push(value.userKecamatan)
-        innerRowData.push(value.userKabupaten)
-        innerRowData.push(value.userReferrerName)
-        innerRowData.push(value.userReferrerPosition)
-        innerRowData.push(value.createdOn)
-        createXLSLFormatObj.push(innerRowData)
-      })
-
-      /* File Name */
-      let filename = `Data Pengguna ${moment().format('DD-MM-YYYY')}.xlsx`
-
-      /* Sheet Name */
-      let ws_name = 'Sheet1'
-      if (typeof console !== 'undefined') console.log(new Date())
-      let wb = XLSX.utils.book_new(),
-        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj)
-
-      XLSX.utils.book_append_sheet(wb, ws, ws_name)
-      XLSX.writeFile(wb, filename)
-    } catch (error) {
-      console.log(error)
+      const filterKecamatan = kecamatan.filter(
+        (item) => item.kabupatenId === findKabupaten?.kabupatenId
+      )
+      if (filterKecamatan.length !== 0) {
+        setKecamatanList(filterKecamatan)
+      }
     }
-  }
+  }, [kabupatenNameSelected])
 
   const header: TableHeader[] = [
     {
@@ -229,31 +193,15 @@ export default function Index(): ReactElement {
       )
     },
     {
-      title: 'Nama Referrer',
-      data: (data: IUserModel, index: number): ReactElement => (
-        <td key={index + 'referrer'} className='md:px-6 md:py-3'>
-          {data.userReferrerName || '_'}
-        </td>
-      )
-    },
-    {
-      title: 'Jabatan Referrer',
-      data: (data: IUserModel, index: number): ReactElement => (
-        <td key={index + 'jabatan referrer'} className='md:px-6 md:py-3'>
-          {data.userReferrerPosition || '_'}
-        </td>
-      )
-    },
-    {
       title: 'Aksi',
       action: true,
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'action'} className='md:px-6 md:py-3 break-all'>
           {/* Desktop only  */}
           <div className='hidden md:block w-64'>
-            <Link to={`/user-data/detail/${data.userId}`}>
+            <Link to={`/referral/members/${data.userId}`}>
               <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
-                Detail
+                Member
               </button>
             </Link>
           </div>
@@ -293,14 +241,11 @@ export default function Index(): ReactElement {
               } z-10 w-44 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-white`}
             >
               <ul className='py-1' aria-labelledby={`dropdownButton-${index}`}>
-                <li>
-                  <Link
-                    to={`/user-data/detail/${data.userId}`}
-                    className='block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white'
-                  >
-                    Detail
-                  </Link>
-                </li>
+                <Link to={`/referral/members/${data.userId}`}>
+                  <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
+                    Member
+                  </button>
+                </Link>
               </ul>
             </div>
           </div>
@@ -338,15 +283,42 @@ export default function Index(): ReactElement {
               <option value='100'>100</option>
             </select>
 
-            {session.adminRole === 'superAdmin' && (
-              <button
-                type='button'
-                onClick={download}
-                className='bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded'
-              >
-                Export
-              </button>
-            )}
+            <select
+              name='kabupatenNameSelected'
+              onChange={(e) => setKabupatenNameSelected(e.target.value)}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
+            >
+              <option value=''>Pilih Kabupaten</option>
+              {kabupatenList.map((item: IKabupatenModel, index) => (
+                <option key={index} value={item.kabupatenName}>
+                  {item.kabupatenName}
+                </option>
+              ))}
+            </select>
+            <select
+              name='kecamatanNameSelected'
+              onChange={(e) => setKecamatanNameSelected(e.target.value)}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
+            >
+              <option value=''>Pilih Kecamatan</option>
+              {kecamatanList.map((item, index) => (
+                <option key={index} value={item.kecamatanName}>
+                  {item.kecamatanName}
+                </option>
+              ))}
+            </select>
+            <select
+              name='userPositionSelected'
+              defaultValue={loader?.table?.size}
+              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
+            >
+              <option value=''>Pilih Jabatan</option>
+              {userPositionList.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
           <div className='w-full  md:w-1/5'>
             <input

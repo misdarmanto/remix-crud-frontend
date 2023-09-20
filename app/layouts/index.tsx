@@ -34,13 +34,13 @@ export default function Layout({
   const data = {
     name: 'Data Pemilu',
     icon: ChartPieIcon,
-    href: 'user-data/?size=10'
+    href: 'user-data'
   }
 
   const relawan = {
     name: 'Referral',
     icon: BsLayers,
-    href: 'referral/?size=10'
+    href: 'referral'
   }
 
   const waBlasMenu = {
@@ -62,7 +62,7 @@ export default function Layout({
   const belumTerdaftar = {
     name: 'Belum Terdaftar',
     icon: ChartBarIcon,
-    href: 'region/unregistered/?size=10'
+    href: 'region/unregistered?size=10'
   }
 
   const myProfile = {

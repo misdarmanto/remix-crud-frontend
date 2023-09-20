@@ -15,6 +15,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
 
+  console.log('_____________user name___________')
+  console.log(params)
+
   let url = new URL(request.url)
   let search = url.searchParams.get('search') || ''
   let size = url.searchParams.get('size') || 10
@@ -67,6 +70,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         }
       },
       session: session,
+      currentUserName: params.userName,
       kabupaten,
       kecamatan,
       isError: false
@@ -201,7 +205,7 @@ export default function Index(): ReactElement {
         <td key={index + 'action'} className='md:px-6 md:py-3 break-all'>
           {/* Desktop only  */}
           <div className='hidden md:block w-64'>
-            <Link to={`/referral/members/${data.userId}`}>
+            <Link to={`/referral/members/${data.userName}/${data.userId}`}>
               <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
                 Member
               </button>
@@ -244,7 +248,7 @@ export default function Index(): ReactElement {
             >
               <ul className='py-1' aria-labelledby={`dropdownButton-${index}`}>
                 <li>
-                  <Link to={`/referral/members/${data.userId}`}>
+                  <Link to={`/referral/members/${data.userName}/${data.userId}`}>
                     <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
                       Member
                     </button>
@@ -260,7 +264,10 @@ export default function Index(): ReactElement {
 
   return (
     <div className=''>
-      <Breadcrumb title='Data Pemilu' navigation={navigation} />
+      <Breadcrumb
+        title={`${loader.currentUserName} ${loader?.table?.data?.total_items}`}
+        navigation={navigation}
+      />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}

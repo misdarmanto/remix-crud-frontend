@@ -1,10 +1,4 @@
-import {
-  Form,
-  useLoaderData,
-  useSubmit,
-  useTransition,
-  useActionData
-} from '@remix-run/react'
+import { Form, useLoaderData, useSubmit, useActionData } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
 import { API } from '~/services/api'
@@ -97,6 +91,7 @@ interface IHistoryField {
   relawanTim: IRelawanModel
   relawanTimNameSelected: string
   relawanNameSelected: string
+  userPosition: string
 }
 
 export default function Index() {
@@ -147,6 +142,7 @@ export default function Index() {
       setKabupatenSelected(history.kabupatenSelected)
       setKecamatanSelected(history.kecamatanSelected)
       setDesaSelected(history.desaSelected)
+      setUserPosition(history.userPosition)
     }
   }, [])
 
@@ -176,7 +172,8 @@ export default function Index() {
     const historyField = {
       kabupatenSelected,
       kecamatanSelected,
-      desaSelected
+      desaSelected,
+      userPosition
     }
 
     localStorage.setItem('historyField', JSON.stringify(historyField))
@@ -349,17 +346,18 @@ export default function Index() {
 
         <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
           <div className='w-full sm:w-1/2'>
-            <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-              Jabatan
-            </label>
+            {userPosition ? (
+              <option value={userPosition}>{userPosition}</option>
+            ) : (
+              <option>Jabatan</option>
+            )}
             <select
               onChange={(e) => {
                 setUserPosition(e.target.value)
-                console.log(e.target.value)
               }}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
             >
-              <option>Pilih Jabatan</option>
+              <option value=''>Pilih Jabatan</option>
               {userPositionList.map((item, index: number) => (
                 <option key={index} value={item}>
                   {item}

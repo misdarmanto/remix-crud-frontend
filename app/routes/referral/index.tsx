@@ -199,7 +199,7 @@ export default function Index(): ReactElement {
         <td key={index + 'action'} className='md:px-6 md:py-3 break-all'>
           {/* Desktop only  */}
           <div className='hidden md:block w-64'>
-            <Link to={`/referral/members/${data.userId}`}>
+            <Link to={`/referral/members/${data.userName}/${data.userId}`}>
               <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
                 Member
               </button>
@@ -241,7 +241,7 @@ export default function Index(): ReactElement {
               } z-10 w-44 text-base list-none bg-white rounded divide-y divide-gray-100 shadow dark:bg-white`}
             >
               <ul className='py-1' aria-labelledby={`dropdownButton-${index}`}>
-                <Link to={`/referral/members/${data.userId}`}>
+                <Link to={`/referral/members/${data.userName}/${data.userId}`}>
                   <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
                     Member
                   </button>

@@ -159,8 +159,8 @@ export default function Index(): ReactElement {
         'Desa',
         'Kecamatan',
         'Kabupaten',
-        'Tim Relawan',
-        'Nama Relawan',
+        'Nama Referrer',
+        'Jabatan Referrer',
         'Tgl Dibuat'
       ]
       let createXLSLFormatObj = []
@@ -398,13 +398,14 @@ export default function Index(): ReactElement {
               </button>
             </Link>
             {session.adminRole === 'superAdmin' && (
-              <button
-                type='button'
-                onClick={download}
-                className='bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded'
-              >
-                Export
-              </button>
+              <Link to={'download'}>
+                <button
+                  type='button'
+                  className='bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded'
+                >
+                  Export
+                </button>
+              </Link>
             )}
           </div>
           <div className='w-full  md:w-1/5'>

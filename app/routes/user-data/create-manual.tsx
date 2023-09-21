@@ -1,10 +1,4 @@
-import {
-  Form,
-  useLoaderData,
-  useSubmit,
-  useTransition,
-  useActionData
-} from '@remix-run/react'
+import { Form, useLoaderData, useSubmit, useActionData } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
 import { API } from '~/services/api'
@@ -31,13 +25,26 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     session,
     CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
   )
-  const relawanTim = await API.get(session, CONFIG.base_url_api + `/relawan-tim/all`)
+
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search')
+  const userReferrerPosition = url.searchParams.get('userReferrerPosition')
+
+  console.log(url.searchParams)
+
+  let userReferrals = { items: [] }
+  if (search !== '' && search !== null) {
+    userReferrals = await API.get(
+      session,
+      `${CONFIG.base_url_api}/users/list?userPosition=${userReferrerPosition}&&search=${search}`
+    )
+  }
 
   return {
+    userReferrals,
     kabupaten,
     kecamatan,
     desa,
-    relawanTim,
     session: session,
     isError: false
   }
@@ -60,8 +67,10 @@ export let action: ActionFunction = async ({ request }) => {
         userKecamatanId: formData.get('userKecamatanId'),
         userKabupaten: formData.get('userKabupaten'),
         userKabupatenId: formData.get('userKabupatenId'),
-        userRelawanTimName: formData.get('userRelawanTimName'),
-        userRelawanName: formData.get('userRelawanName')
+        userPosition: formData.get('userPosition'),
+        userReferrerId: formData.get('userReferrerId') ?? null,
+        userReferrerName: formData.get('userReferrerName') ?? null,
+        userReferrerPosition: formData.get('userReferrerPosition') ?? null
       }
 
       await API.post(session, CONFIG.base_url_api + '/users', payload)
@@ -82,11 +91,14 @@ interface IHistoryField {
   relawanTim: IRelawanModel
   relawanTimNameSelected: string
   relawanNameSelected: string
+  userPosition: string
 }
 
 export default function Index() {
   const navigation = [{ title: 'data pemilu', href: '', active: true }]
   const loader = useLoaderData()
+
+  console.log(loader)
 
   if (loader.isError) {
     return (
@@ -97,13 +109,11 @@ export default function Index() {
   }
 
   const submit = useSubmit()
-  const transition = useTransition()
   const actionData = useActionData()
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
   const kecamatan: IKecamatanModel[] = loader.kecamatan
   const desa: IDesaModel[] = loader.desa
-  const session: ISessionModel = loader.session
 
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
@@ -113,16 +123,18 @@ export default function Index() {
   const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>()
   const [desaSelected, setDesaSelected] = useState<IDesaModel>()
 
-  const [relawanTim, setRelawanTim] = useState<IRelawanModel[]>([])
-  const [relawanTimNameSelected, setRelawanTimNameSelected] = useState<string>('')
-  const [relawanNameSelected, setRelawanNameSelected] = useState('')
+  const [userPosition, setUserPosition] = useState<string>()
+  const [userReferrerPosition, setUserReferrerPosition] = useState<string>()
+  const [userReferrerId, setUserReferrerId] = useState<string>()
+  const [userReferrerName, setUserReferrerName] = useState<string>()
+  const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
+  const [isOpenModal, setIsOpenModal] = useState(false)
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
     setKabupatenList(kabupaten)
     setKecamatanList(filterKecamatan)
     setDesaList(desa)
-    setRelawanTim(loader.relawanTim)
   }, [])
 
   useEffect(() => {
@@ -150,13 +162,42 @@ export default function Index() {
   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
     submit(e.currentTarget, {
       method: 'post',
-      action: `/user-data/create-manual`
+      action: `/user-data/create-auto`
     })
+  }
+
+  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+
+  useEffect(() => {
+    switch (userPosition) {
+      case 'korwil':
+        setUserReferrerPositionList([])
+        break
+      case 'korcam':
+        setUserReferrerPositionList(['korwil'])
+        break
+      case 'kordes':
+        setUserReferrerPositionList(['korwil', 'korcam'])
+        break
+      case 'kortps':
+        setUserReferrerPositionList(['korwil', 'korcam', 'kordes'])
+        break
+      case 'pemilih':
+        setUserReferrerPositionList(['korwil', 'korcam', 'kordes', 'kortps'])
+        break
+      default:
+        break
+    }
+  }, [userPosition])
+
+  const handleModalOnSelect = (item: { userId: string; userName: string }) => {
+    setUserReferrerId(item.userId)
+    setUserReferrerName(item.userName)
   }
 
   return (
     <div className=''>
-      <Breadcrumb title='Tambah Data' navigation={navigation} />
+      <Breadcrumb title='Tambah Data Otomatis' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}
@@ -203,13 +244,8 @@ export default function Index() {
                 onChange={(e) => setKabupatenSelected(JSON.parse(e.target.value))}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                {kabupatenSelected ? (
-                  <option value={JSON.stringify(kabupatenSelected)}>
-                    {kabupatenSelected?.kabupatenName}
-                  </option>
-                ) : (
-                  <option>Pilih Kabupaten</option>
-                )}
+                <option>Pilih Kabupaten</option>
+
                 {kabupatenList.map((item: IKabupatenModel, index) => (
                   <option key={index} value={JSON.stringify(item)}>
                     {item.kabupatenName}
@@ -228,13 +264,8 @@ export default function Index() {
                 onChange={(e) => setKecamatanSelected(JSON.parse(e.target.value))}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                {kecamatanSelected ? (
-                  <option value={JSON.stringify(kecamatanSelected)}>
-                    {kecamatanSelected?.kecamatanName}
-                  </option>
-                ) : (
-                  <option>Pilih Kecamatan</option>
-                )}
+                <option>Pilih Kecamatan</option>
+
                 {kecamatanList.map((item, index) => (
                   <option key={index} value={JSON.stringify(item)}>
                     {item.kecamatanName}
@@ -255,13 +286,8 @@ export default function Index() {
                 onChange={(e) => setDesaSelected(JSON.parse(e.target.value))}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                {desaSelected ? (
-                  <option value={JSON.stringify(desaSelected)}>
-                    {desaSelected?.desaName}
-                  </option>
-                ) : (
-                  <option>Pilih Desa</option>
-                )}
+                <option>Pilih Desa</option>
+
                 {desaList.map((item) => (
                   <option key={item.desaId} value={JSON.stringify(item)}>
                     {item.desaName}
@@ -287,49 +313,63 @@ export default function Index() {
 
         <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
           <div className='w-full sm:w-1/2'>
+            <select
+              onChange={(e) => {
+                setUserPosition(e.target.value)
+              }}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
+            >
+              <option>Pilih Jabatan</option>
+
+              {userPositionList.map((item, index: number) => (
+                <option key={index} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
+          <div className='w-full sm:w-1/2'>
             <div className='my-2'>
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan
+                Jabatan Referrer
               </label>
               <select
-                onChange={(e) => setRelawanTimNameSelected(e.target.value)}
+                onChange={(e) => setUserReferrerPosition(e.target.value)}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                <option>Pilih Jabatan</option>
-                {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
-                  (item, index: number) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  )
-                )}
+                <option>Pilih Jabatan Referrer</option>
+                {userReferrerPositionList.map((item: any, index: number) => (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
           <div className='w-full sm:w-1/2'>
             <div className='my-2'>
               <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
-                Jabatan referrer
+                Nama Referrer
               </label>
-              <select
-                onChange={(e) => setRelawanTimNameSelected(e.target.value)}
-                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
-              >
-                <option>Pilih Jabatan referrer</option>
-                {['korwil', 'korcam', 'kordes', 'kortps', 'pemilih'].map(
-                  (item, index: number) => (
-                    <option key={index} value={item}>
-                      {item}
-                    </option>
-                  )
-                )}
-              </select>
+              <input
+                onFocus={() => setIsOpenModal(true)}
+                type='text'
+                value={userReferrerName}
+                name='userReferrarName'
+                className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500'
+                placeholder='nama'
+              />
             </div>
           </div>
         </div>
 
-        <input hidden name='userRelawanName' value={relawanNameSelected} />
-        <input hidden name='userRelawanTimName' value={relawanTimNameSelected} />
+        <input hidden name='userReferrerId' value={userReferrerId} />
+        <input hidden name='userReferrerName' value={userReferrerName} />
+        <input hidden name='userReferrerPosition' value={userReferrerPosition} />
+        <input hidden name='userPosition' value={userPosition} />
         <input hidden name='userDesa' value={desaSelected?.desaName} />
         <input hidden name='userDesaId' value={desaSelected?.desaId} />
         <input hidden name='userKecamatan' value={kecamatanSelected?.kecamatanName} />
@@ -342,10 +382,94 @@ export default function Index() {
             type='submit'
             className='inline-flex justify-center w-32 rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm'
           >
-            {transition?.submission ? 'Loading...' : 'Submit'}
+            Submit
           </button>
         </div>
       </Form>
+
+      {isOpenModal && (
+        <Modal
+          isOpenModal={isOpenModal}
+          setIsOpenModal={setIsOpenModal}
+          loader={loader}
+          searchUserReferrer={userReferrerPosition ?? ''}
+          onSelected={handleModalOnSelect}
+        />
+      )}
+    </div>
+  )
+}
+
+interface ModalTypes {
+  isOpenModal: any
+  setIsOpenModal: any
+  searchUserReferrer: string
+  loader: any
+  onSelected: any
+}
+
+const Modal = ({
+  isOpenModal,
+  setIsOpenModal,
+  searchUserReferrer,
+  loader,
+  onSelected
+}: ModalTypes) => {
+  const submit = useSubmit()
+  const userReferrals = []
+
+  if (loader?.userReferrals?.items) {
+    userReferrals.push(...loader.userReferrals.items)
+  }
+
+  return (
+    <div className='fixed inset-0 z-10'>
+      <div
+        className='fixed inset-0 w-full h-full bg-black opacity-10'
+        onClick={() => setIsOpenModal(!isOpenModal)}
+      ></div>
+      <div className='flex items-center min-h-screen px-4 py-8'>
+        <div className='relative h-64 flex max-w-xl p-8 mx-auto bg-white rounded-md shadow-lg'>
+          <div className='w-96 overflow-y-scroll'>
+            <Form
+              onChange={(e: any) =>
+                submit(e.currentTarget, { action: '/user-data/create-auto' })
+              }
+              method='get'
+            >
+              <div className='flex flex-row '>
+                <input
+                  type='hidden'
+                  name='searchUserReferrer'
+                  value={searchUserReferrer}
+                />
+                <input
+                  type='email'
+                  name='search'
+                  defaultValue={loader.search}
+                  className='bg-gray-50 border border-gray-300 mx-5 h-10 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-teal-500 dark:focus:border-teal-500'
+                  placeholder='masukan e-mail'
+                  required
+                />
+              </div>
+            </Form>
+            <ul className='max-w-md  mx-5 divide-y divide-gray-200 mt-5 dark:divide-gray-700'>
+              {userReferrals.map((item, index: number) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    onSelected(item)
+                    setIsOpenModal(false)
+                  }}
+                  className='p-2 rounded-lg hover:bg-gray-100'
+                >
+                  {item.userName}
+                </div>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

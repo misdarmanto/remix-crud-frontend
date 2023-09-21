@@ -92,6 +92,10 @@ interface IHistoryField {
   relawanTimNameSelected: string
   relawanNameSelected: string
   userPosition: string
+  userDetailAddress: string
+  userReferrerName: string
+  userReferrerId: string
+  userReferrerPosition: string
 }
 
 export default function Index() {
@@ -122,6 +126,7 @@ export default function Index() {
   const [kabupatenSelected, setKabupatenSelected] = useState<IKabupatenModel>()
   const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>()
   const [desaSelected, setDesaSelected] = useState<IDesaModel>()
+  const [userDetailAddress, setUserDetailAddress] = useState<string>('')
 
   const [userPosition, setUserPosition] = useState<string>()
   const [userReferrerPosition, setUserReferrerPosition] = useState<string>()
@@ -143,6 +148,12 @@ export default function Index() {
       setKecamatanSelected(history.kecamatanSelected)
       setDesaSelected(history.desaSelected)
       setUserPosition(history.userPosition)
+      setUserDetailAddress(history.userDetailAddress)
+      setUserReferrerId(history.userReferrerId)
+      setUserReferrerName(history.userReferrerName)
+      setUserReferrerPosition(history.userReferrerPosition)
+      console.log('_________history_________')
+      console.log(history)
     }
   }, [])
 
@@ -173,7 +184,11 @@ export default function Index() {
       kabupatenSelected,
       kecamatanSelected,
       desaSelected,
-      userPosition
+      userPosition,
+      userDetailAddress,
+      userReferrerId,
+      userReferrerName,
+      userReferrerPosition
     }
 
     localStorage.setItem('historyField', JSON.stringify(historyField))
@@ -336,6 +351,8 @@ export default function Index() {
               </label>
               <textarea
                 name='userDetailAddress'
+                onChange={(e) => setUserDetailAddress(e.target.value)}
+                value={userDetailAddress}
                 className='block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500'
                 placeholder='Jl. Hadi subroto .....'
                 required
@@ -346,18 +363,17 @@ export default function Index() {
 
         <div className='sm:my-6 flex flex-col sm:flex-row gap-5'>
           <div className='w-full sm:w-1/2'>
-            {userPosition ? (
-              <option value={userPosition}>{userPosition}</option>
-            ) : (
-              <option>Jabatan</option>
-            )}
             <select
               onChange={(e) => {
                 setUserPosition(e.target.value)
               }}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
             >
-              <option value=''>Pilih Jabatan</option>
+              {userPosition ? (
+                <option value={userPosition}>{userPosition}</option>
+              ) : (
+                <option>Pilih Jabatan</option>
+              )}
               {userPositionList.map((item, index: number) => (
                 <option key={index} value={item}>
                   {item}
@@ -377,7 +393,11 @@ export default function Index() {
                 onChange={(e) => setUserReferrerPosition(e.target.value)}
                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5'
               >
-                <option>Pilih Jabatan Referrer</option>
+                {userReferrerPosition ? (
+                  <option value={userReferrerPosition}>{userReferrerPosition}</option>
+                ) : (
+                  <option>Pilih Jabatan Referrer</option>
+                )}
                 {userReferrerPositionList.map((item: any, index: number) => (
                   <option key={index} value={item}>
                     {item}

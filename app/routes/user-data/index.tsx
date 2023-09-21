@@ -208,7 +208,7 @@ export default function Index(): ReactElement {
       title: 'Jabatan',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'position'} className='md:px-6 md:py-3 mb-4 md:mb-0'>
-          {data.userPosition}
+          {data.userPosition || '_'}
         </td>
       )
     },

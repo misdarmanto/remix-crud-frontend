@@ -76,7 +76,7 @@ export default function Index() {
         </div>
         <div className='flex gap-5 items-center my-5'>
           <h3 className='text-lg font-semibold'>Jabatan : </h3>
-          <p className='text-gray-800'>{detailUser.userReferrerPosition || '_'}</p>
+          <p className='text-gray-800'>{detailUser.userPosition || '_'}</p>
         </div>
 
         <div className='flex gap-5 items-center my-5'>

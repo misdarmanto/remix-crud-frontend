@@ -12,7 +12,7 @@ import axios from 'axios'
 import moment from 'moment'
 import * as XLSX from 'xlsx'
 import { convertTime } from '~/utilities/convertTime'
-import { IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
+import { IDesaModel, IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
@@ -22,6 +22,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let search = url.searchParams.get('search') || ''
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
+  let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
   let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
   let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
 
@@ -30,18 +31,21 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     session,
     CONFIG.base_url_api + `/region/kecamatan?kabupatenId=11`
   )
+  const desa = await API.get(
+    session,
+    CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
+  )
 
   try {
     const result = await API.getTableData({
       session: session,
-      url: CONFIG.base_url_api + '/users/list',
+      url: CONFIG.base_url_api + '/users/download',
       pagination: true,
-      page: +page || 0,
-      size: +size || 10,
       filters: {
         search: search || '',
         userKabupaten: kabupatenNameSelected || '',
-        userKecamatan: kecamatanNameSelected || ''
+        userKecamatan: kecamatanNameSelected || '',
+        userDesa: desaNameSelected || ''
       }
     })
     return {
@@ -64,7 +68,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       session: session,
       isError: false,
       kabupaten,
-      kecamatan
+      kecamatan,
+      desa
     }
   } catch (error: any) {
     CONSOLE.log(error)
@@ -91,10 +96,11 @@ export default function Index(): ReactElement {
   const download = async () => {
     try {
       let xlsRows: any[] = []
-      await loader.table.data.items.map((value: IUserModel, index: number) => {
+      await loader.table.data.rows.map((value: IUserModel, index: number) => {
         let documentItem = {
           userName: value.userName,
           userPhoneNumber: value.userPhoneNumber,
+          userPosition: value.userPosition,
           userDetailAddress: value.userDetailAddress,
           userDesa: value.userDesa,
           userKecamatan: value.userKecamatan,
@@ -109,6 +115,7 @@ export default function Index(): ReactElement {
       let xlsHeader = [
         'Nama',
         'WA',
+        'jabatan',
         'Alamat',
         'Desa',
         'Kecamatan',
@@ -123,6 +130,7 @@ export default function Index(): ReactElement {
         let innerRowData = []
         innerRowData.push(value.userName)
         innerRowData.push(value.userPhoneNumber)
+        innerRowData.push(value.userPosition)
         innerRowData.push(value.userDetailAddress)
         innerRowData.push(value.userDesa)
         innerRowData.push(value.userKecamatan)
@@ -151,17 +159,21 @@ export default function Index(): ReactElement {
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
   const kecamatan: IKecamatanModel[] = loader.kecamatan
+  const desa: IDesaModel[] = loader.desa
 
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
+  const [desaList, setDesaList] = useState<IDesaModel[]>([])
 
   const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
+  const [desaNameSelected, setDesaNameSelected] = useState('')
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
     setKabupatenList(kabupaten)
     setKecamatanList(filterKecamatan)
+    setDesaList(desa)
   }, [])
 
   useEffect(() => {
@@ -178,6 +190,21 @@ export default function Index(): ReactElement {
     }
   }, [kabupatenNameSelected])
 
+  useEffect(() => {
+    if (kecamatanNameSelected) {
+      const findKecamatan = kecamatan.find(
+        (item) => item.kecamatanName === kecamatanNameSelected
+      )
+      const filterDesa = desa.filter(
+        (item) => item.kecamatanId === findKecamatan?.kecamatanId
+      )
+
+      if (filterDesa.length !== 0) {
+        setDesaList(filterDesa)
+      }
+    }
+  }, [kecamatanNameSelected, kabupatenNameSelected])
+
   return (
     <div className=''>
       <Breadcrumb title='Data Pemilu' navigation={navigation} />
@@ -193,18 +220,6 @@ export default function Index(): ReactElement {
       >
         <div className='flex flex-col md:flex-row justify-between rounded bg-white p-10'>
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
-            <select
-              name='size'
-              defaultValue={loader?.table?.size}
-              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
-            >
-              <option value='2'>2</option>
-              <option value='5'>5</option>
-              <option value='10'>10</option>
-              <option value='50'>50</option>
-              <option value='100'>100</option>
-            </select>
-
             <select
               name='kabupatenNameSelected'
               onChange={(e) => setKabupatenNameSelected(e.target.value)}
@@ -230,8 +245,21 @@ export default function Index(): ReactElement {
               ))}
             </select>
 
+            <select
+              name='desaNameSelected'
+              onChange={(e) => setDesaNameSelected(e.target.value)}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5'
+            >
+              <option value=''>Pilih Desa</option>
+              {desaList.map((item) => (
+                <option key={item.desaId} value={item.desaName}>
+                  {item.desaName}
+                </option>
+              ))}
+            </select>
+
             <div className='w-56 px-2 border flex justify-center items-center rounded'>
-              Total {loader.table.data.total_items}
+              Total {loader.table.data.count}
             </div>
 
             <button

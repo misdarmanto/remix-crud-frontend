@@ -28,7 +28,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
-  const userReferrerPosition = url.searchParams.get('userReferrerPosition')
+  const position = url.searchParams.get('position')
 
   console.log(url.searchParams)
 
@@ -36,7 +36,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   if (search !== '' && search !== null) {
     userReferrals = await API.get(
       session,
-      `${CONFIG.base_url_api}/users/list?userPosition=${userReferrerPosition}&&search=${search}`
+      `${CONFIG.base_url_api}/users/position?userPosition=${position}&&search=${search}`
     )
   }
 
@@ -166,7 +166,14 @@ export default function Index() {
     })
   }
 
-  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+  const userPositionList: string[] = [
+    'korwil',
+    'korcam',
+    'kordes',
+    'kortps',
+    'pemilih',
+    'relawan'
+  ]
 
   useEffect(() => {
     switch (userPosition) {
@@ -392,7 +399,7 @@ export default function Index() {
           isOpenModal={isOpenModal}
           setIsOpenModal={setIsOpenModal}
           loader={loader}
-          searchUserReferrer={userReferrerPosition ?? ''}
+          position={userReferrerPosition}
           onSelected={handleModalOnSelect}
         />
       )}
@@ -403,7 +410,7 @@ export default function Index() {
 interface ModalTypes {
   isOpenModal: any
   setIsOpenModal: any
-  searchUserReferrer: string
+  position?: string
   loader: any
   onSelected: any
 }
@@ -411,7 +418,7 @@ interface ModalTypes {
 const Modal = ({
   isOpenModal,
   setIsOpenModal,
-  searchUserReferrer,
+  position,
   loader,
   onSelected
 }: ModalTypes) => {
@@ -433,16 +440,12 @@ const Modal = ({
           <div className='w-96 overflow-y-scroll'>
             <Form
               onChange={(e: any) =>
-                submit(e.currentTarget, { action: '/user-data/create-auto' })
+                submit(e.currentTarget, { action: '/user-data/create-manual' })
               }
               method='get'
             >
               <div className='flex flex-row '>
-                <input
-                  type='hidden'
-                  name='searchUserReferrer'
-                  value={searchUserReferrer}
-                />
+                <input type='hidden' name='position' value={position} />
                 <input
                   type='email'
                   name='search'

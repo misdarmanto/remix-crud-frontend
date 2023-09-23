@@ -9,20 +9,18 @@ import { CONFIG } from '~/config'
 import { CONSOLE } from '~/utilities/log'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
-import { IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
+import { IDesaModel, IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
-
-  console.log('_____________user name___________')
-  console.log(params)
 
   let url = new URL(request.url)
   let search = url.searchParams.get('search') || ''
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
 
+  let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
   let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
   let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
   let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
@@ -31,6 +29,10 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const kecamatan = await API.get(
     session,
     CONFIG.base_url_api + `/region/kecamatan?kabupatenId=11`
+  )
+  const desa = await API.get(
+    session,
+    CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
   )
 
   try {
@@ -45,12 +47,13 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         userKecamatan: kecamatanNameSelected || '',
         userPosition: userPositionSelected || '',
         userReferrerId: params.userId,
+        userDesa: desaNameSelected || '',
         search: search || ''
       }
     })
     return {
       table: {
-        link: 'referral',
+        link: `referral/members/${params.userName}/${params.userId}`,
         data: result,
         page: page,
         size: size,
@@ -58,6 +61,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
           userKabupaten: kabupatenNameSelected || '',
           userKecamatan: kecamatanNameSelected || '',
           userPosition: userPositionSelected || '',
+          userDesa: desaNameSelected || '',
           userReferrerId: params.userId,
           search: search
         }
@@ -73,6 +77,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       currentUserName: params.userName,
       kabupaten,
       kecamatan,
+      desa,
       isError: false
     }
   } catch (error: any) {
@@ -128,10 +133,13 @@ export default function Index(): ReactElement {
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
   const kecamatan: IKecamatanModel[] = loader.kecamatan
+  const desa: IDesaModel[] = loader.desa
 
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
+  const [desaList, setDesaList] = useState<IDesaModel[]>([])
 
+  const [desaNameSelected, setDesaNameSelected] = useState('')
   const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
 
@@ -141,6 +149,7 @@ export default function Index(): ReactElement {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
     setKabupatenList(kabupaten)
     setKecamatanList(filterKecamatan)
+    setDesaList(desa)
   }, [])
 
   useEffect(() => {
@@ -157,7 +166,30 @@ export default function Index(): ReactElement {
     }
   }, [kabupatenNameSelected])
 
+  useEffect(() => {
+    if (kecamatanNameSelected) {
+      const findKecamatan = kecamatan.find(
+        (item) => item.kecamatanName === kecamatanNameSelected
+      )
+      const filterDesa = desa.filter(
+        (item) => item.kecamatanId === findKecamatan?.kecamatanId
+      )
+
+      if (filterDesa.length !== 0) {
+        setDesaList(filterDesa)
+      }
+    }
+  }, [kecamatanNameSelected, kabupatenNameSelected, desaNameSelected])
+
   const header: TableHeader[] = [
+    {
+      title: 'No',
+      data: (data: IUserModel, index: number): ReactElement => (
+        <td key={index + 'no'} className='md:px-6 md:py-3 '>
+          {index + 1}
+        </td>
+      )
+    },
     {
       title: 'Nama',
       data: (data: IUserModel, index: number): ReactElement => (
@@ -265,7 +297,7 @@ export default function Index(): ReactElement {
   return (
     <div className=''>
       <Breadcrumb
-        title={`${loader.currentUserName} ${loader?.table?.data?.total_items}`}
+        title={`${loader.currentUserName}   / Total Pengikut (${loader?.table?.data?.total_items})`}
         navigation={navigation}
       />
       {actionData?.isError && (
@@ -318,6 +350,20 @@ export default function Index(): ReactElement {
                 </option>
               ))}
             </select>
+
+            <select
+              name='desaNameSelected'
+              onChange={(e) => setDesaNameSelected(e.target.value)}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5'
+            >
+              <option value=''>Pilih Desa</option>
+              {desaList.map((item) => (
+                <option key={item.desaId} value={item.desaName}>
+                  {item.desaName}
+                </option>
+              ))}
+            </select>
+
             <select
               name='userPositionSelected'
               defaultValue={loader?.table?.size}

@@ -9,7 +9,7 @@ import { CONFIG } from '~/config'
 import { CONSOLE } from '~/utilities/log'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
-import { IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
+import { IDesaModel, IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
@@ -20,6 +20,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
 
+  let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
   let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
   let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
   let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
@@ -28,6 +29,10 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const kecamatan = await API.get(
     session,
     CONFIG.base_url_api + `/region/kecamatan?kabupatenId=11`
+  )
+  const desa = await API.get(
+    session,
+    CONFIG.base_url_api + `/region/desa?kecamatanId=1111`
   )
 
   try {
@@ -41,6 +46,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         userKabupaten: kabupatenNameSelected || '',
         userKecamatan: kecamatanNameSelected || '',
         userPosition: userPositionSelected || '',
+        userDesa: desaNameSelected || '',
         search: search || ''
       }
     })
@@ -54,6 +60,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
           userKabupaten: kabupatenNameSelected || '',
           userKecamatan: kecamatanNameSelected || '',
           userPosition: userPositionSelected || '',
+          userDesa: desaNameSelected || '',
           search: search
         }
       },
@@ -67,6 +74,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       session: session,
       kabupaten,
       kecamatan,
+      desa,
       isError: false
     }
   } catch (error: any) {
@@ -122,10 +130,13 @@ export default function Index(): ReactElement {
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
   const kecamatan: IKecamatanModel[] = loader.kecamatan
+  const desa: IDesaModel[] = loader.desa
 
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
+  const [desaList, setDesaList] = useState<IDesaModel[]>([])
 
+  const [desaNameSelected, setDesaNameSelected] = useState('')
   const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
 
@@ -135,6 +146,7 @@ export default function Index(): ReactElement {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
     setKabupatenList(kabupaten)
     setKecamatanList(filterKecamatan)
+    setDesaList(desa)
   }, [])
 
   useEffect(() => {
@@ -151,12 +163,35 @@ export default function Index(): ReactElement {
     }
   }, [kabupatenNameSelected])
 
+  useEffect(() => {
+    if (kecamatanNameSelected) {
+      const findKecamatan = kecamatan.find(
+        (item) => item.kecamatanName === kecamatanNameSelected
+      )
+      const filterDesa = desa.filter(
+        (item) => item.kecamatanId === findKecamatan?.kecamatanId
+      )
+
+      if (filterDesa.length !== 0) {
+        setDesaList(filterDesa)
+      }
+    }
+  }, [kecamatanNameSelected, kabupatenNameSelected, desaNameSelected])
+
   const header: TableHeader[] = [
+    {
+      title: 'No',
+      data: (data: IUserModel, index: number): ReactElement => (
+        <td key={index + 'no'} className='md:px-6 md:py-3 '>
+          {index + 1}
+        </td>
+      )
+    },
     {
       title: 'Nama',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'userName'} className='md:px-6 md:py-3 '>
-          {data.userName}
+          {data.userName || '_'}
         </td>
       )
     },
@@ -164,7 +199,7 @@ export default function Index(): ReactElement {
       title: 'Jabatan',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'position'} className='md:px-6 md:py-3 mb-4 md:mb-0'>
-          {data.userPosition}
+          {data.userPosition || '_'}
         </td>
       )
     },
@@ -172,7 +207,7 @@ export default function Index(): ReactElement {
       title: 'Desa',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'desa'} className='md:px-6 md:py-3'>
-          {data.userDesa}
+          {data.userDesa || '_'}
         </td>
       )
     },
@@ -180,7 +215,7 @@ export default function Index(): ReactElement {
       title: 'Kecamatan',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'kecamatan'} className='md:px-6 md:py-3'>
-          {data.userKecamatan}
+          {data.userKecamatan || '_'}
         </td>
       )
     },
@@ -188,7 +223,7 @@ export default function Index(): ReactElement {
       title: 'Kabupaten',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'kabupaten'} className='md:px-6 md:py-3'>
-          {data.userKabupaten}
+          {data.userKabupaten || '_'}
         </td>
       )
     },
@@ -256,7 +291,7 @@ export default function Index(): ReactElement {
 
   return (
     <div className=''>
-      <Breadcrumb title='Data Pemilu' navigation={navigation} />
+      <Breadcrumb title='Referral' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}
@@ -307,6 +342,20 @@ export default function Index(): ReactElement {
                 </option>
               ))}
             </select>
+
+            <select
+              name='desaNameSelected'
+              onChange={(e) => setDesaNameSelected(e.target.value)}
+              className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-32 p-2.5'
+            >
+              <option value=''>Pilih Desa</option>
+              {desaList.map((item) => (
+                <option key={item.desaId} value={item.desaName}>
+                  {item.desaName}
+                </option>
+              ))}
+            </select>
+
             <select
               name='userPositionSelected'
               defaultValue={loader?.table?.size}

@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from 'react'
+import { ReactElement, useEffect, useRef, useState } from 'react'
 import {
   Form,
   useLoaderData,
@@ -18,10 +18,6 @@ import { Modal } from '~/components/Modal'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
 import { ISessionModel } from '~/models/sessionModel'
-import axios from 'axios'
-import moment from 'moment'
-import * as XLSX from 'xlsx'
-import { convertTime } from '~/utilities/convertTime'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
@@ -29,7 +25,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
   let url = new URL(request.url)
   let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 10
+  let size = url.searchParams.get('size') || 100
   let page = url.searchParams.get('page') || 0
 
   try {
@@ -38,7 +34,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       url: CONFIG.base_url_api + '/users/list',
       pagination: true,
       page: +page || 0,
-      size: +size || 10,
+      size: +size || 100,
       filters: {
         search: search || ''
       }
@@ -124,78 +120,15 @@ export default function Index(): ReactElement {
     setMobileActionDropdown(null)
   }, [])
 
-  const download = async () => {
-    try {
-      const result = await axios.get(
-        `${loader.API.baseUrl}/users/list?pagination=false`,
-        {
-          auth: {
-            username: loader.API.authorization.username,
-            password: loader.API.authorization.password
-          }
-        }
-      )
-
-      let xlsRows: any[] = []
-      await result.data.data.items.map((value: IUserModel, index: number) => {
-        let documentItem = {
-          userName: value.userName,
-          userPhoneNumber: value.userPhoneNumber,
-          userDetailAddress: value.userDetailAddress,
-          userDesa: value.userDesa,
-          userKecamatan: value.userKecamatan,
-          userKabupaten: value.userKabupaten,
-          userReferrerName: value.userReferrerName,
-          userReferrerPosition: value.userReferrerPosition,
-          createdOn: convertTime(value.createdOn)
-        }
-        xlsRows.push(documentItem)
-      })
-
-      let xlsHeader = [
-        'Nama',
-        'WA',
-        'Alamat',
-        'Desa',
-        'Kecamatan',
-        'Kabupaten',
-        'Nama Referrer',
-        'Jabatan Referrer',
-        'Tgl Dibuat'
-      ]
-      let createXLSLFormatObj = []
-      createXLSLFormatObj.push(xlsHeader)
-      xlsRows.map((value: IUserModel, i) => {
-        let innerRowData = []
-        innerRowData.push(value.userName)
-        innerRowData.push(value.userPhoneNumber)
-        innerRowData.push(value.userDetailAddress)
-        innerRowData.push(value.userDesa)
-        innerRowData.push(value.userKecamatan)
-        innerRowData.push(value.userKabupaten)
-        innerRowData.push(value.userReferrerName)
-        innerRowData.push(value.userReferrerPosition)
-        innerRowData.push(value.createdOn)
-        createXLSLFormatObj.push(innerRowData)
-      })
-
-      /* File Name */
-      let filename = `Data Pengguna ${moment().format('DD-MM-YYYY')}.xlsx`
-
-      /* Sheet Name */
-      let ws_name = 'Sheet1'
-      if (typeof console !== 'undefined') console.log(new Date())
-      let wb = XLSX.utils.book_new(),
-        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj)
-
-      XLSX.utils.book_append_sheet(wb, ws, ws_name)
-      XLSX.writeFile(wb, filename)
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
   const header: TableHeader[] = [
+    {
+      title: 'No',
+      data: (data: IUserModel, index: number): ReactElement => (
+        <td key={index + 'no'} className='md:px-6 md:py-3 '>
+          {index + 1}
+        </td>
+      )
+    },
     {
       title: 'Nama',
       data: (data: IUserModel, index: number): ReactElement => (
@@ -351,8 +284,20 @@ export default function Index(): ReactElement {
     }
   ]
 
+  const [tableSize, setTableSize] = useState<number>()
+  const tableStorageKey = 'currentTableSize'
+
+  useEffect(() => {
+    const currentTableSize = localStorage.getItem(tableStorageKey)
+    if (!currentTableSize) {
+      localStorage.setItem(tableStorageKey, JSON.stringify(loader?.table?.size))
+    } else {
+      setTableSize(parseInt(JSON.parse(currentTableSize)))
+    }
+  }, [loader])
+
   return (
-    <div className=''>
+    <div>
       <Breadcrumb title='Data Pemilu' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
@@ -370,14 +315,20 @@ export default function Index(): ReactElement {
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
             <select
               name='size'
-              defaultValue={loader?.table?.size}
+              defaultValue={tableSize || loader?.table?.size}
+              onChange={(e) => {
+                setTableSize(+e.target.value)
+                localStorage.setItem(tableStorageKey, JSON.stringify(e.target.value))
+              }}
               className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
             >
+              {tableSize && <option value={tableSize}>{tableSize}</option>}
               <option value='2'>2</option>
               <option value='5'>5</option>
               <option value='10'>10</option>
               <option value='50'>50</option>
               <option value='100'>100</option>
+              <option value='1000'>1000</option>
             </select>
             &nbsp;
             <Link to={`create-auto`}>

@@ -28,15 +28,13 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
   const url = new URL(request.url)
   const search = url.searchParams.get('search')
-  const userReferrerPosition = url.searchParams.get('userReferrerPosition')
-
-  console.log(url.searchParams)
+  const position = url.searchParams.get('position')
 
   let userReferrals = { items: [] }
   if (search !== '' && search !== null) {
     userReferrals = await API.get(
       session,
-      `${CONFIG.base_url_api}/users/list?userPosition=${userReferrerPosition}&&search=${search}`
+      `${CONFIG.base_url_api}/users/position?userPosition=${position}&search=${search}`
     )
   }
 
@@ -199,7 +197,14 @@ export default function Index() {
     })
   }
 
-  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+  const userPositionList: string[] = [
+    'korwil',
+    'korcam',
+    'kordes',
+    'kortps',
+    'pemilih',
+    'relawan'
+  ]
 
   useEffect(() => {
     switch (userPosition) {
@@ -449,7 +454,7 @@ export default function Index() {
           isOpenModal={isOpenModal}
           setIsOpenModal={setIsOpenModal}
           loader={loader}
-          searchUserReferrer={userReferrerPosition ?? ''}
+          position={userReferrerPosition}
           onSelected={handleModalOnSelect}
         />
       )}
@@ -460,7 +465,7 @@ export default function Index() {
 interface ModalTypes {
   isOpenModal: any
   setIsOpenModal: any
-  searchUserReferrer: string
+  position?: string
   loader: any
   onSelected: any
 }
@@ -468,7 +473,7 @@ interface ModalTypes {
 const Modal = ({
   isOpenModal,
   setIsOpenModal,
-  searchUserReferrer,
+  position,
   loader,
   onSelected
 }: ModalTypes) => {
@@ -495,11 +500,7 @@ const Modal = ({
               method='get'
             >
               <div className='flex flex-row '>
-                <input
-                  type='hidden'
-                  name='searchUserReferrer'
-                  value={searchUserReferrer}
-                />
+                <input type='hidden' name='position' value={position} />
                 <input
                   type='email'
                   name='search'

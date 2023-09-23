@@ -38,13 +38,13 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
-    const userReferrerPosition = url.searchParams.get('userReferrerPosition')
+    const position = url.searchParams.get('position')
 
     let userReferrals = { items: [] }
     if (search !== '' && search !== null) {
       userReferrals = await API.get(
         session,
-        `${CONFIG.base_url_api}/users/list?userPosition=${userReferrerPosition}&&search=${search}`
+        `${CONFIG.base_url_api}/users/position?userPosition=${position}&&search=${search}`
       )
     }
 
@@ -88,10 +88,9 @@ export let action: ActionFunction = async ({ request }) => {
         userReferrerPosition: formData.get('userReferrerPosition') ?? null
       }
 
-      console.log(payload)
       result = await API.patch(session, CONFIG.base_url_api + '/users', payload)
 
-      return redirect('/user-data')
+      return redirect(`/user-data?size=${+formData.get('tableSize')! || 100}`)
     }
     return { isError: false, result }
   } catch (error: any) {
@@ -191,7 +190,14 @@ export default function Index() {
     })
   }
 
-  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+  const userPositionList: string[] = [
+    'korwil',
+    'korcam',
+    'kordes',
+    'kortps',
+    'pemilih',
+    'relawan'
+  ]
 
   useEffect(() => {
     switch (userPosition) {
@@ -219,6 +225,16 @@ export default function Index() {
     setUserReferrerId(item.userId)
     setUserReferrerName(item.userName)
   }
+
+  const [tableSize, setTableSize] = useState<number>(100)
+  const tableStorageKey = 'currentTableSize'
+
+  useEffect(() => {
+    const currentTableSize = localStorage.getItem(tableStorageKey)
+    if (currentTableSize) {
+      setTableSize(parseInt(JSON.parse(currentTableSize)))
+    }
+  }, [loader])
 
   return (
     <div className=''>
@@ -397,16 +413,33 @@ export default function Index() {
             </div>
           </div>
         </div>
-        <input hidden name='userReferrerId' value={userReferrerId} />
-        <input hidden name='userReferrerName' value={userReferrerName} />
-        <input hidden name='userReferrerPosition' value={userReferrerPosition} />
-        <input hidden name='userPosition' value={userPosition} />
-        <input hidden name='userDesa' value={desaSelected?.desaName} />
-        <input hidden name='userDesaId' value={desaSelected?.desaId} />
-        <input hidden name='userKecamatan' value={kecamatanSelected?.kecamatanName} />
-        <input hidden name='userKecamatanId' value={kecamatanSelected?.kecamatanId} />
-        <input hidden name='userKabupaten' value={kabupatenSelected?.kabupatenName} />
-        <input hidden name='userKabupatenId' value={kabupatenSelected?.kabupatenId} />
+        <input hidden name='tableSize' defaultValue={tableSize} />
+        <input hidden name='userReferrerId' defaultValue={userReferrerId} />
+        <input hidden name='userReferrerName' defaultValue={userReferrerName} />
+        <input hidden name='userReferrerPosition' defaultValue={userReferrerPosition} />
+        <input hidden name='userPosition' defaultValue={userPosition} />
+        <input hidden name='userDesa' defaultValue={desaSelected?.desaName} />
+        <input hidden name='userDesaId' defaultValue={desaSelected?.desaId} />
+        <input
+          hidden
+          name='userKecamatan'
+          defaultValue={kecamatanSelected?.kecamatanName}
+        />
+        <input
+          hidden
+          name='userKecamatanId'
+          defaultValue={kecamatanSelected?.kecamatanId}
+        />
+        <input
+          hidden
+          name='userKabupaten'
+          defaultValue={kabupatenSelected?.kabupatenName}
+        />
+        <input
+          hidden
+          name='userKabupatenId'
+          defaultValue={kabupatenSelected?.kabupatenId}
+        />
 
         <div className='flex justify-end mt-4'>
           <button
@@ -423,7 +456,7 @@ export default function Index() {
           isOpenModal={isOpenModal}
           setIsOpenModal={setIsOpenModal}
           loader={loader}
-          searchUserReferrer={userReferrerPosition ?? ''}
+          position={userReferrerPosition}
           onSelected={handleModalOnSelect}
         />
       )}
@@ -434,7 +467,7 @@ export default function Index() {
 interface ModalTypes {
   isOpenModal: any
   setIsOpenModal: any
-  searchUserReferrer: string
+  position?: string
   loader: any
   onSelected: any
 }
@@ -442,13 +475,12 @@ interface ModalTypes {
 const Modal = ({
   isOpenModal,
   setIsOpenModal,
-  searchUserReferrer,
+  position,
   loader,
   onSelected
 }: ModalTypes) => {
   const submit = useSubmit()
   const userReferrals = []
-  const detailUser = loader.user as IUserModel
 
   if (loader?.userReferrals?.items) {
     userReferrals.push(...loader.userReferrals.items)
@@ -466,17 +498,13 @@ const Modal = ({
             <Form
               onChange={(e: any) =>
                 submit(e.currentTarget, {
-                  action: `/user-data/edit/${detailUser.userId}`
+                  action: `/user-data/edit/${loader.user.userId}`
                 })
               }
               method='get'
             >
               <div className='flex flex-row '>
-                <input
-                  type='hidden'
-                  name='searchUserReferrer'
-                  value={searchUserReferrer}
-                />
+                <input type='hidden' name='position' value={position} />
                 <input
                   type='email'
                   name='search'

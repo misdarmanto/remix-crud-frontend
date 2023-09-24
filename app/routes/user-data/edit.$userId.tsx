@@ -3,7 +3,8 @@ import {
   useLoaderData,
   useSubmit,
   useTransition,
-  useActionData
+  useActionData,
+  useNavigate
 } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
@@ -90,9 +91,11 @@ export let action: ActionFunction = async ({ request }) => {
 
       result = await API.patch(session, CONFIG.base_url_api + '/users', payload)
 
-      return redirect(`/user-data?size=${+formData.get('tableSize')! || 100}`)
+      return redirect(
+        `/user-data?page=${formData.get('tablePage')}&size=${formData.get('tableSize')}`
+      )
     }
-    return { isError: false, result }
+    return { isError: false, result, back: false }
   } catch (error: any) {
     console.log(error)
     return { ...error, isError: true }
@@ -135,6 +138,15 @@ export default function Index() {
   const [userReferrerName, setUserReferrerName] = useState<string>()
   const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
   const [isOpenModal, setIsOpenModal] = useState(false)
+
+  // const navigate = useNavigate()
+
+  // useEffect(() => {
+  //   console.log(actionData)
+  //   if (actionData?.back) {
+  //     navigate(-3)
+  //   }
+  // }, [actionData])
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
@@ -186,7 +198,7 @@ export default function Index() {
   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
     submit(e.currentTarget, {
       method: 'patch',
-      action: `/user-data/edit/${detailUser.userId}`
+      action: `user-data/edit/${detailUser.userId}`
     })
   }
 
@@ -226,14 +238,25 @@ export default function Index() {
     setUserReferrerName(item.userName)
   }
 
-  const [tableSize, setTableSize] = useState<number>(100)
+  const [tableSize, setTableSize] = useState<number>()
+  const [tablePage, setTablePage] = useState<number>()
   const tableStorageKey = 'currentTableSize'
+  const tablePageKey = 'tablePage'
 
   useEffect(() => {
     const currentTableSize = localStorage.getItem(tableStorageKey)
     if (currentTableSize) {
       setTableSize(parseInt(JSON.parse(currentTableSize)))
     }
+
+    const currentTablePage = localStorage.getItem(tablePageKey)
+    if (currentTablePage) {
+      setTablePage(parseInt(JSON.parse(currentTablePage)))
+    }
+
+    console.log('__________________current tab size')
+    console.log(currentTableSize)
+    console.log(currentTablePage)
   }, [loader])
 
   return (
@@ -413,7 +436,9 @@ export default function Index() {
             </div>
           </div>
         </div>
+
         <input hidden name='tableSize' defaultValue={tableSize} />
+        <input hidden name='tablePage' defaultValue={tablePage} />
         <input hidden name='userReferrerId' defaultValue={userReferrerId} />
         <input hidden name='userReferrerName' defaultValue={userReferrerName} />
         <input hidden name='userReferrerPosition' defaultValue={userReferrerPosition} />

@@ -5,7 +5,8 @@ import {
   useSubmit,
   useTransition,
   Link,
-  useActionData
+  useActionData,
+  useLocation
 } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
@@ -25,7 +26,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
   let url = new URL(request.url)
   let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 100
+  let size = url.searchParams.get('size') || 1000
   let page = url.searchParams.get('page') || 0
 
   try {
@@ -285,15 +286,19 @@ export default function Index(): ReactElement {
   ]
 
   const [tableSize, setTableSize] = useState<number>()
-  const tableStorageKey = 'currentTableSize'
+  const tableSizeKey = 'currentTableSize'
+  const tablePageKey = 'tablePage'
 
   useEffect(() => {
-    const currentTableSize = localStorage.getItem(tableStorageKey)
+    const currentTableSize = localStorage.getItem(tableSizeKey)
     if (!currentTableSize) {
-      localStorage.setItem(tableStorageKey, JSON.stringify(loader?.table?.size))
+      console.log('table page')
+      console.log(loader.table.page)
+      localStorage.setItem(tableSizeKey, JSON.stringify(loader?.table?.size))
     } else {
       setTableSize(parseInt(JSON.parse(currentTableSize)))
     }
+    localStorage.setItem(tablePageKey, JSON.stringify(loader?.table?.page))
   }, [loader])
 
   return (
@@ -318,7 +323,7 @@ export default function Index(): ReactElement {
               defaultValue={tableSize || loader?.table?.size}
               onChange={(e) => {
                 setTableSize(+e.target.value)
-                localStorage.setItem(tableStorageKey, JSON.stringify(e.target.value))
+                localStorage.setItem(tableSizeKey, JSON.stringify(e.target.value))
               }}
               className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
             >

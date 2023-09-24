@@ -49,6 +49,7 @@ export let loader: LoaderFunction = async ({
 export default function App() {
   let location = useLocation()
   const loader = useLoaderData()
+
   return (
     <html lang='en'>
       <head>
@@ -58,17 +59,17 @@ export default function App() {
         <Links />
       </head>
       <body className='bg-gray-200'>
+        <ScrollRestoration />
         {!location.pathname.includes('login') ? (
           <Layout session={loader.session}>
             <Outlet />
-            <ScrollRestoration />
             <Scripts />
             <LiveReload />
           </Layout>
         ) : (
           <>
             <Outlet />
-            <ScrollRestoration />
+
             <Scripts />
             <LiveReload />
           </>

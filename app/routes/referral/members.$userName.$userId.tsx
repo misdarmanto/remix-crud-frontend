@@ -143,7 +143,15 @@ export default function Index(): ReactElement {
   const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
 
-  const userPositionList: string[] = ['korwil', 'korcam', 'kordes', 'kortps', 'pemilih']
+  const userPositionList: string[] = [
+    'korDapilX',
+    'korwil',
+    'korcam',
+    'kordes',
+    'kortps',
+    'pemilih',
+    'relawan'
+  ]
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')

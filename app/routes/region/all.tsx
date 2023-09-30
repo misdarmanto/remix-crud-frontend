@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, useEffect, useState } from 'react'
 import { Form, Link, useLoaderData, useSubmit } from '@remix-run/react'
 import { LoaderFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
@@ -9,6 +9,7 @@ import { CONFIG } from '~/config'
 import { CONSOLE } from '~/utilities/log'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { ISessionModel } from '~/models/sessionModel'
+import { IDesaModel, IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
 
 interface IUnregisteredRegionModel {
   desaName: string

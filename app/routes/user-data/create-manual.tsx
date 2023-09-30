@@ -167,6 +167,7 @@ export default function Index() {
   }
 
   const userPositionList: string[] = [
+    'korDapilX',
     'korwil',
     'korcam',
     'kordes',
@@ -177,20 +178,30 @@ export default function Index() {
 
   useEffect(() => {
     switch (userPosition) {
-      case 'korwil':
+      case 'korDapilX':
         setUserReferrerPositionList([])
         break
+      case 'korwil':
+        setUserReferrerPositionList(['korDapilX'])
+        break
       case 'korcam':
-        setUserReferrerPositionList(['korwil'])
+        setUserReferrerPositionList(['korDapilX', 'korwil'])
         break
       case 'kordes':
-        setUserReferrerPositionList(['korwil', 'korcam'])
+        setUserReferrerPositionList(['korDapilX', 'korwil', 'korcam'])
         break
       case 'kortps':
-        setUserReferrerPositionList(['korwil', 'korcam', 'kordes'])
+        setUserReferrerPositionList(['korDapilX', 'korwil', 'korcam', 'kordes'])
         break
       case 'pemilih':
-        setUserReferrerPositionList(['korwil', 'korcam', 'kordes', 'kortps'])
+        setUserReferrerPositionList([
+          'korDapilX',
+          'korwil',
+          'korcam',
+          'kordes',
+          'kortps',
+          'relawan'
+        ])
         break
       default:
         break

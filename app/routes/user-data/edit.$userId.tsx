@@ -92,7 +92,9 @@ export let action: ActionFunction = async ({ request }) => {
       result = await API.patch(session, CONFIG.base_url_api + '/users', payload)
 
       return redirect(
-        `/user-data?page=${formData.get('tablePage')}&size=${formData.get('tableSize')}`
+        `/user-data?page=${formData.get('tablePage')}&size=${formData.get(
+          'tableSize'
+        )}&search=${formData.get('tableSearch')}`
       )
     }
     return { isError: false, result, back: false }
@@ -138,15 +140,6 @@ export default function Index() {
   const [userReferrerName, setUserReferrerName] = useState<string>()
   const [userReferrerPositionList, setUserReferrerPositionList] = useState<string[]>([])
   const [isOpenModal, setIsOpenModal] = useState(false)
-
-  // const navigate = useNavigate()
-
-  // useEffect(() => {
-  //   console.log(actionData)
-  //   if (actionData?.back) {
-  //     navigate(-3)
-  //   }
-  // }, [actionData])
 
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
@@ -203,6 +196,7 @@ export default function Index() {
   }
 
   const userPositionList: string[] = [
+    'korDapilX',
     'korwil',
     'korcam',
     'kordes',
@@ -213,20 +207,30 @@ export default function Index() {
 
   useEffect(() => {
     switch (userPosition) {
-      case 'korwil':
+      case 'korDapilX':
         setUserReferrerPositionList([])
         break
+      case 'korwil':
+        setUserReferrerPositionList(['korDapilX'])
+        break
       case 'korcam':
-        setUserReferrerPositionList(['korwil'])
+        setUserReferrerPositionList(['korDapilX', 'korwil'])
         break
       case 'kordes':
-        setUserReferrerPositionList(['korwil', 'korcam'])
+        setUserReferrerPositionList(['korDapilX', 'korwil', 'korcam'])
         break
       case 'kortps':
-        setUserReferrerPositionList(['korwil', 'korcam', 'kordes'])
+        setUserReferrerPositionList(['korDapilX', 'korwil', 'korcam', 'kordes'])
         break
       case 'pemilih':
-        setUserReferrerPositionList(['korwil', 'korcam', 'kordes', 'kortps'])
+        setUserReferrerPositionList([
+          'korDapilX',
+          'korwil',
+          'korcam',
+          'kordes',
+          'kortps',
+          'relawan'
+        ])
         break
       default:
         break
@@ -240,8 +244,11 @@ export default function Index() {
 
   const [tableSize, setTableSize] = useState<number>()
   const [tablePage, setTablePage] = useState<number>()
+  const [tableSearch, setTableSearch] = useState<string>('')
+
   const tableStorageKey = 'currentTableSize'
   const tablePageKey = 'tablePage'
+  const tableSearchKey = 'searchKey'
 
   useEffect(() => {
     const currentTableSize = localStorage.getItem(tableStorageKey)
@@ -254,9 +261,10 @@ export default function Index() {
       setTablePage(parseInt(JSON.parse(currentTablePage)))
     }
 
-    console.log('__________________current tab size')
-    console.log(currentTableSize)
-    console.log(currentTablePage)
+    const currentTableSearch = localStorage.getItem(tableSearchKey)
+    if (currentTableSearch) {
+      setTableSearch(JSON.parse(currentTableSearch))
+    }
   }, [loader])
 
   return (
@@ -437,6 +445,7 @@ export default function Index() {
           </div>
         </div>
 
+        <input hidden name='tableSearch' defaultValue={tableSearch} />
         <input hidden name='tableSize' defaultValue={tableSize} />
         <input hidden name='tablePage' defaultValue={tablePage} />
         <input hidden name='userReferrerId' defaultValue={userReferrerId} />

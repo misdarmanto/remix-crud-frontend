@@ -26,7 +26,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
 
   let url = new URL(request.url)
   let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 1000
+  let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
 
   try {
@@ -35,7 +35,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       url: CONFIG.base_url_api + '/users/list',
       pagination: true,
       page: +page || 0,
-      size: +size || 100,
+      size: +size || 10,
       filters: {
         search: search || ''
       }
@@ -286,18 +286,28 @@ export default function Index(): ReactElement {
   ]
 
   const [tableSize, setTableSize] = useState<number>()
+  const [tableSearch, setTableSearch] = useState<string>('')
+
   const tableSizeKey = 'currentTableSize'
   const tablePageKey = 'tablePage'
+  const tableSearchKey = 'searchKey'
 
   useEffect(() => {
     const currentTableSize = localStorage.getItem(tableSizeKey)
     if (!currentTableSize) {
-      console.log('table page')
-      console.log(loader.table.page)
       localStorage.setItem(tableSizeKey, JSON.stringify(loader?.table?.size))
     } else {
       setTableSize(parseInt(JSON.parse(currentTableSize)))
     }
+
+    const currentTabelSearch = localStorage.getItem(tableSearchKey)
+    if (!currentTabelSearch) {
+      localStorage.setItem(tableSearchKey, JSON.stringify(loader?.table?.filter.search))
+    } else {
+      setTableSearch(currentTabelSearch)
+    }
+
+    localStorage.setItem(tableSearchKey, JSON.stringify(loader?.table?.filter.search))
     localStorage.setItem(tablePageKey, JSON.stringify(loader?.table?.page))
   }, [loader])
 
@@ -364,7 +374,7 @@ export default function Index(): ReactElement {
               </Link>
             )}
           </div>
-          <div className='w-full  md:w-1/5'>
+          <div className='w-full md:w-1/5'>
             <input
               defaultValue={loader?.table?.filter.search}
               name='search'

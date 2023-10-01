@@ -215,7 +215,7 @@ export default function Index() {
 
   return (
     <div className=''>
-      <Breadcrumb title='Tambah Data Otomatis' navigation={navigation} />
+      <Breadcrumb title='Tambah Data Manual' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}
@@ -232,6 +232,7 @@ export default function Index() {
             <input
               name='userName'
               type='text'
+              autoFocus
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 '
               required
               placeholder='nama...'

@@ -6,7 +6,8 @@ import {
   useTransition,
   Link,
   useActionData,
-  useLocation
+  useLocation,
+  useNavigate
 } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect } from '@remix-run/router'
@@ -106,6 +107,7 @@ export default function Index(): ReactElement {
 
   const [modalDelete, setModalDelete] = useState(false)
   const [modalData, setModalData] = useState<IUserModel>()
+  const navigate = useNavigate()
 
   const actionData = useActionData()
   const session: ISessionModel = loader.session
@@ -310,6 +312,22 @@ export default function Index(): ReactElement {
     localStorage.setItem(tableSearchKey, JSON.stringify(loader?.table?.filter.search))
     localStorage.setItem(tablePageKey, JSON.stringify(loader?.table?.page))
   }, [loader])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      console.log(event.key)
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+        navigate('create-auto')
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
+        navigate('create-manual')
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   return (
     <div>

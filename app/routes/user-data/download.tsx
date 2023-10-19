@@ -25,6 +25,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
   let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
   let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
+  let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -45,7 +46,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         search: search || '',
         userKabupaten: kabupatenNameSelected || '',
         userKecamatan: kecamatanNameSelected || '',
-        userDesa: desaNameSelected || ''
+        userDesa: desaNameSelected || '',
+        userPosition: userPositionSelected
       }
     })
     return {
@@ -169,6 +171,16 @@ export default function Index(): ReactElement {
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
   const [desaNameSelected, setDesaNameSelected] = useState('')
 
+  const userPositionList: string[] = [
+    'korDapilX',
+    'korwil',
+    'korcam',
+    'kordes',
+    'kortps',
+    'pemilih',
+    'relawan'
+  ]
+
   useEffect(() => {
     const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
     setKabupatenList(kabupaten)
@@ -254,6 +266,18 @@ export default function Index(): ReactElement {
               {desaList.map((item) => (
                 <option key={item.desaId} value={item.desaName}>
                   {item.desaName}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name='userPositionSelected'
+              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
+            >
+              <option value=''>Pilih Jabatan</option>
+              {userPositionList.map((item) => (
+                <option key={item} value={item}>
+                  {item}
                 </option>
               ))}
             </select>

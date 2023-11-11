@@ -382,7 +382,7 @@ export default function Index(): ReactElement {
               </button>
             </Link>
             {session.adminRole === 'superAdmin' && (
-              <Link to={'download'}>
+              <Link to={'export'}>
                 <button
                   type='button'
                   className='bg-transparent hover:bg-teal-500 text-teal-700 font-semibold hover:text-white py-2 px-4 border border-teal-500 hover:border-transparent rounded'

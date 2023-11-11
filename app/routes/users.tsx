@@ -26,10 +26,13 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
 
-  let url = new URL(request.url)
-  let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 10
-  let page = url.searchParams.get('page') || 0
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') || ''
+  const size = url.searchParams.get('size') || 10
+  const page = url.searchParams.get('page') || 0
+  const desaId = url.searchParams.get('desaId')
+  const kecamatanId = url.searchParams.get('kecamatanId')
+  const kabupatenId = url.searchParams.get('kabupatenId')
 
   try {
     const result = await API.getTableData({
@@ -39,20 +42,28 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       page: +page || 0,
       size: +size || 10,
       filters: {
-        desaId: params.desaId,
-        search: search || ''
+        desaId,
+        kecamatanId,
+        kabupatenId,
+        search
       }
     })
     return {
       table: {
-        link: `user/${params.desaId}`,
+        link: `users`,
         data: result,
         page: page,
         size: size,
         filter: {
+          desaId,
+          kecamatanId,
+          kabupatenId,
           search: search
         }
       },
+      desaId,
+      kecamatanId,
+      kabupatenId,
       API: {
         baseUrl: CONFIG.base_url_api,
         authorization: {
@@ -96,7 +107,7 @@ export default function Index(): ReactElement {
   const download = async () => {
     try {
       const result = await axios.get(
-        `${loader.API.baseUrl}/users/list?pagination=false`,
+        `${loader.API.baseUrl}/statistic/users?pagination=false&desaId=${loader.desaId}&kecamatanId=${loader.kecamatanId}&kabupatenId=${loader.kabupatenId}`,
         {
           auth: {
             username: loader.API.authorization.username,

@@ -26,6 +26,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
   let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
   let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
+  let userNamePositionSelected = url.searchParams.get('userNamePositionSelected') || ''
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -47,7 +48,8 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         userKabupaten: kabupatenNameSelected || '',
         userKecamatan: kecamatanNameSelected || '',
         userDesa: desaNameSelected || '',
-        userPosition: userPositionSelected
+        userPosition: userPositionSelected,
+        userName: userNamePositionSelected ?? ''
       }
     })
     return {
@@ -166,10 +168,12 @@ export default function Index(): ReactElement {
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
   const [desaList, setDesaList] = useState<IDesaModel[]>([])
+  const [userNamePositionList, setUserNamePositionList] = useState<string[]>([])
 
   const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
   const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
   const [desaNameSelected, setDesaNameSelected] = useState('')
+  const [userPositionSelected, setUserPositionSelected] = useState('')
 
   const userPositionList: string[] = [
     'korDapilX',
@@ -187,6 +191,12 @@ export default function Index(): ReactElement {
     setKecamatanList(filterKecamatan)
     setDesaList(desa)
   }, [])
+
+  useEffect(() => {
+    const users = loader?.table?.data?.rows.map((item: any) => item.userName)
+    setUserNamePositionList(users)
+    console.log(loader?.table?.data?.rows)
+  }, [userPositionSelected])
 
   useEffect(() => {
     if (kabupatenNameSelected) {
@@ -227,11 +237,36 @@ export default function Index(): ReactElement {
       )}
 
       <Form
-        onChange={(e: any) => submit(e.currentTarget, { action: 'user-data/download' })}
+        onChange={(e: any) => submit(e.currentTarget, { action: 'user-data/export' })}
         method='get'
       >
         <div className='flex flex-col md:flex-row justify-between rounded bg-white p-10'>
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
+            <select
+              name='userPositionSelected'
+              onChange={(e) => setUserPositionSelected(e.target.value)}
+              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
+            >
+              <option value=''>Pilih Jabatan</option>
+              {userPositionList.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name='userNamePositionSelected'
+              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
+            >
+              <option value=''>Pilih User</option>
+              {userNamePositionList.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
             <select
               name='kabupatenNameSelected'
               onChange={(e) => setKabupatenNameSelected(e.target.value)}
@@ -266,18 +301,6 @@ export default function Index(): ReactElement {
               {desaList.map((item) => (
                 <option key={item.desaId} value={item.desaName}>
                   {item.desaName}
-                </option>
-              ))}
-            </select>
-
-            <select
-              name='userPositionSelected'
-              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
-            >
-              <option value=''>Pilih Jabatan</option>
-              {userPositionList.map((item) => (
-                <option key={item} value={item}>
-                  {item}
                 </option>
               ))}
             </select>

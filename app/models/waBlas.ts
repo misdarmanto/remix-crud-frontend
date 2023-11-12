@@ -1,4 +1,5 @@
 export interface IWaBlasSettings {
-	waBlasSettingsId?: string;
-	waBlasSettingsMessage: string;
+  waBlasSettingsId?: string
+  waBlasSettingsMessage: string
+  waBlasSettingsImage: string
 }

@@ -30,8 +30,14 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let search = url.searchParams.get('search') || ''
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
-  let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
-  let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
+
+  // let kabupatenSelected = JSON.parse(
+  //   url.searchParams.get('kabupatenSelected') ?? ''
+  // ) as unknown as IKabupatenModel
+
+  // let kecamatanSelected = JSON.parse(
+  //   url.searchParams.get('kecamatanelected') ?? ''
+  // ) as unknown as IKecamatanModel
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -49,9 +55,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       page: +page || 0,
       size: +size || 10,
       filters: {
-        search: search || '',
-        userKabupaten: kabupatenNameSelected || '',
-        userKecamatan: kecamatanNameSelected || ''
+        search: search || ''
+        // userKabupaten: kabupatenSelected.kabupatenName || '',
+        // userKecamatan: kecamatanSelected.kecamatanName || ''
       }
     })
     return {
@@ -92,8 +98,8 @@ export let action: ActionFunction = async ({ request }) => {
   try {
     if (request.method == 'POST') {
       const payload: any = {
-        kabupatenNameSelected: formData.get('kabupatenNameSelected') || '',
-        kecamatanNameSelected: formData.get('kecamatanNameSelected') || ''
+        kabupatenId: formData.get('kabupatenId') || '',
+        kecamatanId: formData.get('kecamatanId') || ''
       }
 
       await API.post(session, CONFIG.base_url_api + '/wa-blas/send-message', payload)
@@ -129,8 +135,8 @@ export default function Index(): ReactElement {
   const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
   const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
 
-  const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
-  const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
+  const [kabupatenSelected, setKabupatenSelected] = useState<IKabupatenModel>()
+  const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>()
 
   const [defaultMessage, setDefaultMessage] = useState('')
 
@@ -144,9 +150,9 @@ export default function Index(): ReactElement {
   }, [])
 
   useEffect(() => {
-    if (kabupatenNameSelected) {
+    if (kabupatenSelected) {
       const findKabupaten = kabupaten.find(
-        (item) => item.kabupatenName === kabupatenNameSelected
+        (item) => item.kabupatenId === kabupatenSelected.kabupatenId
       )
       const filterKecamatan = kecamatan.filter(
         (item) => item.kabupatenId === findKabupaten?.kabupatenId
@@ -155,7 +161,7 @@ export default function Index(): ReactElement {
         setKecamatanList(filterKecamatan)
       }
     }
-  }, [kabupatenNameSelected])
+  }, [kabupatenSelected])
 
   useEffect(() => {
     setDefaultMessage(waBlasSettings.waBlasSettingsMessage)
@@ -256,25 +262,25 @@ export default function Index(): ReactElement {
               <option value='100'>100</option>
             </select>
             <select
-              name='kabupatenNameSelected'
-              onChange={(e) => setKabupatenNameSelected(e.target.value)}
+              name='kabupatenSelected'
+              onChange={(e) => setKabupatenSelected(JSON.parse(e.target.value))}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
             >
               <option value=''>Pilih Kabupaten</option>
               {kabupatenList.map((item: IKabupatenModel, index) => (
-                <option key={index} value={item.kabupatenName}>
+                <option key={index} value={JSON.stringify(item)}>
                   {item.kabupatenName}
                 </option>
               ))}
             </select>
             <select
-              name='kecamatanNameSelected'
-              onChange={(e) => setKecamatanNameSelected(e.target.value)}
+              name='kecamatanSelected'
+              onChange={(e) => setKecamatanSelected(JSON.parse(e.target.value))}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
             >
               <option value=''>Pilih Kecamatan</option>
               {kecamatanList.map((item, index) => (
-                <option key={index} value={item.kecamatanName}>
+                <option key={index} value={JSON.stringify(item)}>
                   {item.kecamatanName}
                 </option>
               ))}
@@ -309,8 +315,8 @@ export default function Index(): ReactElement {
         }}
       >
         <Form method={'post'} onSubmit={submitData}>
-          <input hidden name='kabupatenNameSelected' value={kabupatenNameSelected} />
-          <input hidden name='kecamatanNameSelected' value={kecamatanNameSelected} />
+          <input hidden name='kabupatenId' value={kabupatenSelected?.kabupatenId} />
+          <input hidden name='kecamatanId' value={kecamatanSelected?.kecamatanId} />
           Apakah anda yakin ingin membroadcast pesan ke pada pengguna tersebut?
           <div className='flex flex-col md:flex-row mt-4'>
             <button

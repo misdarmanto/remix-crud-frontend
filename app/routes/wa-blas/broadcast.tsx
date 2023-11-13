@@ -56,7 +56,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     })
     return {
       table: {
-        link: '/wa-blas/broadcast',
+        link: 'wa-blas/broadcast',
         data: result,
         page: page,
         size: size,

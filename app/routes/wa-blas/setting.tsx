@@ -46,7 +46,7 @@ export let action: ActionFunction = async ({ request }) => {
     if (request.method == 'PATCH') {
       const payload: IWaBlasSettings | any = {
         waBlasSettingsMessage: formData.get('waBlasSettingsMessage'),
-        waBlasSettingsImage: formData.get('waBlasSettingsImage')
+        waBlasSettingsImage: formData.get('waBlasSettingsImage') ?? null
       }
 
       await API.patch(session, CONFIG.base_url_api + '/wa-blas/settings', payload)
@@ -166,6 +166,18 @@ export default function Index() {
           )}
         </div>
 
+        {imageUrl && (
+          <div className='flex justify-end mt-4'>
+            <button
+              onClick={() => setImageUrl('')}
+              type='button'
+              className='inline-flex justify-center w-32 rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm'
+            >
+              Hapus
+            </button>
+          </div>
+        )}
+
         <div className='w-full md:mr-2'>
           <div className='mt-1'>
             <label className='block mb-2 text-sm font-medium text-gray-900'>
@@ -192,7 +204,7 @@ export default function Index() {
             type='submit'
             className='inline-flex justify-center w-32 rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm'
           >
-            {transition?.submission ? 'Menyimpan...' : 'Submit'}
+            {transition?.submission ? 'Menyimpan...' : 'Simpan'}
           </button>
         </div>
       </Form>

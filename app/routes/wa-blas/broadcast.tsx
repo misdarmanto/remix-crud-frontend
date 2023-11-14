@@ -31,13 +31,10 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let size = url.searchParams.get('size') || 10
   let page = url.searchParams.get('page') || 0
 
-  // let kabupatenSelected = JSON.parse(
-  //   url.searchParams.get('kabupatenSelected') ?? ''
-  // ) as unknown as IKabupatenModel
+  let kabupatenId = url.searchParams.get('kabupatenId')
+  let kecamatanId = url.searchParams.get('kecamatanId')
 
-  // let kecamatanSelected = JSON.parse(
-  //   url.searchParams.get('kecamatanelected') ?? ''
-  // ) as unknown as IKecamatanModel
+  console.log(kabupatenId)
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -52,12 +49,12 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       session: session,
       url: CONFIG.base_url_api + '/users/list',
       pagination: true,
-      page: +page || 0,
-      size: +size || 10,
+      page: +page ?? 0,
+      size: +size ?? 10,
       filters: {
-        search: search || ''
-        // userKabupaten: kabupatenSelected.kabupatenName || '',
-        // userKecamatan: kecamatanSelected.kecamatanName || ''
+        search: search ?? '',
+        kabupatenId: kabupatenId ?? '',
+        kecamatanId: kecamatanId ?? ''
       }
     })
     return {
@@ -67,7 +64,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
         page: page,
         size: size,
         filter: {
-          search: search
+          search: search,
+          kabupatenId: kabupatenId ?? '',
+          kecamatanId: kecamatanId ?? ''
         }
       },
       API: {
@@ -98,8 +97,8 @@ export let action: ActionFunction = async ({ request }) => {
   try {
     if (request.method == 'POST') {
       const payload: any = {
-        kabupatenId: formData.get('kabupatenId') || '',
-        kecamatanId: formData.get('kecamatanId') || ''
+        kabupatenId: formData.get('kabupatenId') ?? '',
+        kecamatanId: formData.get('kecamatanId') ?? ''
       }
 
       await API.post(session, CONFIG.base_url_api + '/wa-blas/send-message', payload)
@@ -137,6 +136,9 @@ export default function Index(): ReactElement {
 
   const [kabupatenSelected, setKabupatenSelected] = useState<IKabupatenModel>()
   const [kecamatanSelected, setKecamatanSelected] = useState<IKecamatanModel>()
+
+  const [kabupatenIdSelected, setKabupatenIdSelected] = useState<string>()
+  const [kecamatanIdSelected, setKecamatanIdSelected] = useState<string>()
 
   const [defaultMessage, setDefaultMessage] = useState('')
 
@@ -248,6 +250,8 @@ export default function Index(): ReactElement {
         }
         method='get'
       >
+        <input hidden name='kabupatenId' value={kabupatenIdSelected} />
+        <input hidden name='kecamatanId' value={kecamatanIdSelected} />
         <div className='flex flex-col md:flex-row justify-between mb-2 md:px-0'>
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
             <select
@@ -262,8 +266,10 @@ export default function Index(): ReactElement {
               <option value='100'>100</option>
             </select>
             <select
-              name='kabupatenSelected'
-              onChange={(e) => setKabupatenSelected(JSON.parse(e.target.value))}
+              onChange={(e) => {
+                setKabupatenSelected(JSON.parse(e.target.value))
+                setKabupatenIdSelected(JSON.parse(e.target.value).kabupatenId)
+              }}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
             >
               <option value=''>Pilih Kabupaten</option>
@@ -274,8 +280,10 @@ export default function Index(): ReactElement {
               ))}
             </select>
             <select
-              name='kecamatanSelected'
-              onChange={(e) => setKecamatanSelected(JSON.parse(e.target.value))}
+              onChange={(e) => {
+                setKecamatanSelected(JSON.parse(e.target.value))
+                setKecamatanIdSelected(JSON.parse(e.target.value).kecamatanId)
+              }}
               className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5'
             >
               <option value=''>Pilih Kecamatan</option>

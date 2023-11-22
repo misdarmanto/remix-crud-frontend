@@ -6,7 +6,8 @@ import {
   ChartBarIcon,
   UserGroupIcon,
   ChartPieIcon,
-  CogIcon
+  CogIcon,
+  ArrowDownIcon
 } from '@heroicons/react/outline'
 import { BsLayers, BsPerson, BsWhatsapp } from 'react-icons/bs'
 import { Fragment, useState } from 'react'
@@ -53,6 +54,16 @@ export default function Layout({
     ]
   }
 
+  const exportMenu = {
+    name: 'Export',
+    icon: ArrowDownIcon,
+    children: [
+      { name: 'by wilayah', href: 'export/by-region' },
+      { name: 'by referrer', href: 'export/by-referrer' },
+      { name: 'by jabatan', href: 'export/by-position' }
+    ]
+  }
+
   const settingMenu = {
     name: 'Pengaturan',
     icon: CogIcon,
@@ -79,6 +90,7 @@ export default function Layout({
     waBlasMenu,
     belumTerdaftar,
     relawan,
+    exportMenu,
     settingMenu
   ]
 

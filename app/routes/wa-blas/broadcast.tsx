@@ -34,15 +34,11 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   let kabupatenId = url.searchParams.get('kabupatenId')
   let kecamatanId = url.searchParams.get('kecamatanId')
 
-  console.log(kabupatenId)
-
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
     session,
     CONFIG.base_url_api + `/region/kecamatan?kabupatenId=11`
   )
-
-  const waBlasSettings = await API.get(session, `${CONFIG.base_url_api}/wa-blas/settings`)
 
   try {
     const result = await API.getTableData({
@@ -76,8 +72,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
           password: CONFIG.authorization.passsword
         }
       },
-      session: session,
-      waBlasSettings,
+      session,
       kabupaten,
       kecamatan,
       isError: false
@@ -103,8 +98,9 @@ export let action: ActionFunction = async ({ request }) => {
       }
 
       console.log('_____Start________')
-      console.log(formData.get('userData'))
+      console.log(JSON.parse(formData.get('userData') + ''))
       console.log('_____end________')
+
       await API.post(session, CONFIG.base_url_api + '/wa-blas/send-message', payload)
     }
     return redirect('/wa-blas/history')
@@ -130,8 +126,6 @@ export default function Index(): ReactElement {
 
   const actionData = useActionData()
   const navigation = [{ title: 'data pemilu', href: '', active: true }]
-
-  const waBlasSettings: IWaBlasSettings = loader?.waBlasSettings
 
   const kabupaten: IKabupatenModel[] = loader.kabupaten
   const kecamatan: IKecamatanModel[] = loader.kecamatan

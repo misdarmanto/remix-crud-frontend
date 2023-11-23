@@ -48,7 +48,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     const result = await API.getTableData({
       session: session,
       url: CONFIG.base_url_api + '/users/list',
-      pagination: true,
+      pagination: false,
       page: +page ?? 0,
       size: +size ?? 10,
       filters: {
@@ -98,12 +98,16 @@ export let action: ActionFunction = async ({ request }) => {
     if (request.method == 'POST') {
       const payload: any = {
         kabupatenId: formData.get('kabupatenId') ?? '',
-        kecamatanId: formData.get('kecamatanId') ?? ''
+        kecamatanId: formData.get('kecamatanId') ?? '',
+        userData: formData.get('userData') ?? ''
       }
 
+      console.log('_____Start________')
+      console.log(formData.get('userData'))
+      console.log('_____end________')
       await API.post(session, CONFIG.base_url_api + '/wa-blas/send-message', payload)
     }
-    return { isError: false, request }
+    return redirect('/wa-blas/history')
   } catch (error: any) {
     console.log(error)
     return { ...error, isError: true }
@@ -121,6 +125,7 @@ export default function Index(): ReactElement {
     )
   }
 
+  console.log(loader.table.data.items)
   const submit = useSubmit()
 
   const actionData = useActionData()
@@ -139,8 +144,6 @@ export default function Index(): ReactElement {
 
   const [kabupatenIdSelected, setKabupatenIdSelected] = useState<string>()
   const [kecamatanIdSelected, setKecamatanIdSelected] = useState<string>()
-
-  const [defaultMessage, setDefaultMessage] = useState('')
 
   const transition = useTransition()
   const [openModal, setOpenModal] = useState(false)
@@ -164,10 +167,6 @@ export default function Index(): ReactElement {
       }
     }
   }, [kabupatenSelected])
-
-  useEffect(() => {
-    setDefaultMessage(waBlasSettings.waBlasSettingsMessage)
-  }, [])
 
   const submitData = async (e: React.FormEvent<HTMLFormElement>) => {
     submit(e.currentTarget, {
@@ -226,7 +225,7 @@ export default function Index(): ReactElement {
       )
     },
     {
-      title: 'jabatab referrer',
+      title: 'jabatan referrer',
       data: (data: IUserModel, index: number): ReactElement => (
         <td key={index + 'nama relawan'} className='md:px-6 md:py-3'>
           {data.userReferrerPosition || '_'}
@@ -254,17 +253,6 @@ export default function Index(): ReactElement {
         <input hidden name='kecamatanId' value={kecamatanIdSelected} />
         <div className='flex flex-col md:flex-row justify-between mb-2 md:px-0'>
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
-            <select
-              name='size'
-              defaultValue={loader?.table?.size}
-              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
-            >
-              <option value='2'>2</option>
-              <option value='5'>5</option>
-              <option value='10'>10</option>
-              <option value='50'>50</option>
-              <option value='100'>100</option>
-            </select>
             <select
               onChange={(e) => {
                 setKabupatenSelected(JSON.parse(e.target.value))
@@ -325,6 +313,7 @@ export default function Index(): ReactElement {
         <Form method={'post'} onSubmit={submitData}>
           <input hidden name='kabupatenId' value={kabupatenSelected?.kabupatenId} />
           <input hidden name='kecamatanId' value={kecamatanSelected?.kecamatanId} />
+          <input hidden name='userData' value={JSON.stringify(loader.table.data.items)} />
           Apakah anda yakin ingin membroadcast pesan ke pada pengguna tersebut?
           <div className='flex flex-col md:flex-row mt-4'>
             <button
@@ -332,7 +321,7 @@ export default function Index(): ReactElement {
               onClick={() => setOpenModal(false)}
               className='inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm'
             >
-              {transition?.submission ? 'Sending...' : 'Send'}
+              {transition?.submission ? 'loading...' : 'Kirim'}
             </button>
             <button
               type='button'

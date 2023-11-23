@@ -90,7 +90,55 @@ export default function Index(): ReactElement {
 
   const actionData = useActionData()
   const submit = useSubmit()
-  const navigation = [{ title: 'Download', href: '', active: true }]
+  const navigation = [{ title: 'by wilayah', href: '', active: true }]
+
+  const kabupaten: IKabupatenModel[] = loader.kabupaten
+  const kecamatan: IKecamatanModel[] = loader.kecamatan
+  const desa: IDesaModel[] = loader.desa
+
+  const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
+  const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
+  const [desaList, setDesaList] = useState<IDesaModel[]>([])
+
+  const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
+  const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
+  const [desaNameSelected, setDesaNameSelected] = useState('')
+
+  useEffect(() => {
+    const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
+    setKabupatenList(kabupaten)
+    setKecamatanList(filterKecamatan)
+    setDesaList(desa)
+  }, [])
+
+  useEffect(() => {
+    if (kabupatenNameSelected) {
+      const findKabupaten = kabupaten.find(
+        (item) => item.kabupatenName === kabupatenNameSelected
+      )
+      const filterKecamatan = kecamatan.filter(
+        (item) => item.kabupatenId === findKabupaten?.kabupatenId
+      )
+      if (filterKecamatan.length !== 0) {
+        setKecamatanList(filterKecamatan)
+      }
+    }
+  }, [kabupatenNameSelected])
+
+  useEffect(() => {
+    if (kecamatanNameSelected) {
+      const findKecamatan = kecamatan.find(
+        (item) => item.kecamatanName === kecamatanNameSelected
+      )
+      const filterDesa = desa.filter(
+        (item) => item.kecamatanId === findKecamatan?.kecamatanId
+      )
+
+      if (filterDesa.length !== 0) {
+        setDesaList(filterDesa)
+      }
+    }
+  }, [kecamatanNameSelected, kabupatenNameSelected])
 
   const download = async () => {
     try {
@@ -141,7 +189,9 @@ export default function Index(): ReactElement {
       })
 
       /* File Name */
-      let filename = `Data Pengguna ${moment().format('DD-MM-YYYY')}.xlsx`
+      let filename = `Data Pengguna by wilayah ${kabupatenNameSelected ?? ''}/${
+        kecamatanNameSelected ?? ''
+      }/${desaNameSelected} pada ${moment().format('DD-MM-YYYY')}.xlsx`
 
       /* Sheet Name */
       let ws_name = 'Sheet1'
@@ -156,57 +206,9 @@ export default function Index(): ReactElement {
     }
   }
 
-  const kabupaten: IKabupatenModel[] = loader.kabupaten
-  const kecamatan: IKecamatanModel[] = loader.kecamatan
-  const desa: IDesaModel[] = loader.desa
-
-  const [kabupatenList, setKabupatenList] = useState<IKabupatenModel[]>([])
-  const [kecamatanList, setKecamatanList] = useState<IKecamatanModel[]>([])
-  const [desaList, setDesaList] = useState<IDesaModel[]>([])
-
-  const [kabupatenNameSelected, setKabupatenNameSelected] = useState('')
-  const [kecamatanNameSelected, setKecamatanNameSelected] = useState('')
-  const [desaNameSelected, setDesaNameSelected] = useState('')
-
-  useEffect(() => {
-    const filterKecamatan = kecamatan.filter((item) => item.kabupatenId === '11')
-    setKabupatenList(kabupaten)
-    setKecamatanList(filterKecamatan)
-    setDesaList(desa)
-  }, [])
-
-  useEffect(() => {
-    if (kabupatenNameSelected) {
-      const findKabupaten = kabupaten.find(
-        (item) => item.kabupatenName === kabupatenNameSelected
-      )
-      const filterKecamatan = kecamatan.filter(
-        (item) => item.kabupatenId === findKabupaten?.kabupatenId
-      )
-      if (filterKecamatan.length !== 0) {
-        setKecamatanList(filterKecamatan)
-      }
-    }
-  }, [kabupatenNameSelected])
-
-  useEffect(() => {
-    if (kecamatanNameSelected) {
-      const findKecamatan = kecamatan.find(
-        (item) => item.kecamatanName === kecamatanNameSelected
-      )
-      const filterDesa = desa.filter(
-        (item) => item.kecamatanId === findKecamatan?.kecamatanId
-      )
-
-      if (filterDesa.length !== 0) {
-        setDesaList(filterDesa)
-      }
-    }
-  }, [kecamatanNameSelected, kabupatenNameSelected])
-
   return (
     <div className=''>
-      <Breadcrumb title='Data Pemilu' navigation={navigation} />
+      <Breadcrumb title='Export Data Pemilu' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}
@@ -214,7 +216,7 @@ export default function Index(): ReactElement {
       )}
 
       <Form
-        onChange={(e: any) => submit(e.currentTarget, { action: 'user-data/export' })}
+        onChange={(e: any) => submit(e.currentTarget, { action: 'export/by-region' })}
         method='get'
       >
         <div className='flex flex-col md:flex-row justify-between rounded bg-white p-10'>

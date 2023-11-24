@@ -316,7 +316,7 @@ export default function Index(): ReactElement {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       console.log(event.key)
-      if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
         navigate('create-auto')
       }
       if ((event.ctrlKey || event.metaKey) && event.key === 'x') {

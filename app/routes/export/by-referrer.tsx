@@ -9,7 +9,11 @@ import { CONFIG } from '~/config'
 import { CONSOLE } from '~/utilities/log'
 import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
-import { IDesaModel, IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
+import * as XLSX from 'xlsx'
+import { Modal } from '~/components/Modal'
+import moment from 'moment'
+import { convertTime } from '~/utilities/convertTime'
+import axios from 'axios'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
@@ -122,11 +126,86 @@ export default function Index(): ReactElement {
 
   const actionData = useActionData()
 
+  const [modalDelete, setOpenModalDownload] = useState(false)
+  const [modalData, setModalData] = useState<IUserModel>()
+
+  const submitDeleteData = async (e: React.FormEvent<HTMLFormElement>) => {
+    submit(e.currentTarget, { method: 'delete', action: `/user-data` })
+    setOpenModalDownload(false)
+  }
+
   const navigation = [{ title: 'data referral', href: '', active: true }]
 
   useEffect(() => {
     setMobileActionDropdown(null)
   }, [])
+
+  const download = async () => {
+    try {
+      const result = await axios.get(
+        `${loader.API.baseUrl}/users/referrals?userReferrerId=${modalData?.userId}`,
+        {
+          auth: {
+            username: loader.API.authorization.username,
+            password: loader.API.authorization.password
+          }
+        }
+      )
+
+      let xlsRows: any[] = []
+      await result.data.data.items.map((value: IUserModel, index: number) => {
+        let documentItem = {
+          userName: value.userName,
+          userPhoneNumber: value.userPhoneNumber,
+          userDetailAddress: value.userDetailAddress,
+          userDesa: value.userDesa,
+          userKecamatan: value.userKecamatan,
+          userKabupaten: value.userKabupaten,
+          createdOn: value.createdOn
+        }
+        xlsRows.push(documentItem)
+      })
+
+      let xlsHeader = [
+        'Nama',
+        'WA',
+        'Alamat',
+        'Desa',
+        'Kecamatan',
+        'Kabupaten',
+        'Tgl Dibuat'
+      ]
+      let createXLSLFormatObj = []
+      createXLSLFormatObj.push(xlsHeader)
+      xlsRows.map((value: IUserModel, i) => {
+        let innerRowData = []
+        innerRowData.push(value.userName)
+        innerRowData.push(value.userPhoneNumber)
+        innerRowData.push(value.userDetailAddress)
+        innerRowData.push(value.userDesa)
+        innerRowData.push(value.userKecamatan)
+        innerRowData.push(value.userKabupaten)
+        innerRowData.push(value.createdOn)
+        createXLSLFormatObj.push(innerRowData)
+      })
+
+      /* File Name */
+      let filename = `Data member dari ${modalData?.userName} pada ${moment().format(
+        'DD-MM-YYYY'
+      )}.xlsx`
+
+      /* Sheet Name */
+      let ws_name = 'Sheet1'
+      if (typeof console !== 'undefined') console.log(new Date())
+      let wb = XLSX.utils.book_new(),
+        ws = XLSX.utils.aoa_to_sheet(createXLSLFormatObj)
+
+      XLSX.utils.book_append_sheet(wb, ws, ws_name)
+      XLSX.writeFile(wb, filename)
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const header: TableHeader[] = [
     {
@@ -160,11 +239,15 @@ export default function Index(): ReactElement {
         <td key={index + 'action'} className='md:px-6 md:py-3 break-all'>
           {/* Desktop only  */}
           <div className='hidden md:block w-64'>
-            <Link to={`/referral/members/${data.userName}/${data.userId}`}>
-              <button className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'>
-                Download
-              </button>
-            </Link>
+            <button
+              onClick={() => {
+                setModalData(data)
+                setOpenModalDownload(true)
+              }}
+              className='bg-transparent  m-1 hover:bg-teal-500 text-teal-700 hover:text-white py-1 px-2 border border-teal-500 hover:border-transparent rounded'
+            >
+              Download
+            </button>
           </div>
           {/* Mobile only  */}
           <div className='block md:hidden relative'>
@@ -257,6 +340,37 @@ export default function Index(): ReactElement {
       </Form>
 
       <Table header={header} table={loader.table} />
+
+      <Modal
+        open={modalDelete}
+        setOpen={() => {
+          setOpenModalDownload(false)
+        }}
+      >
+        <input className='hidden' name='userId' value={modalData?.userId}></input>
+        Apakah anda yakin akan mengunduh data member dari{' '}
+        <strong>{modalData?.userName}?</strong>
+        <div className='flex flex-col md:flex-row mt-4'>
+          <button
+            onClick={() => {
+              download()
+              setOpenModalDownload(false)
+            }}
+            className='inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm'
+          >
+            Download
+          </button>
+          <button
+            type='button'
+            className='inline-flex ml-0 md:ml-2 justify-center w-full rounded-md border border-gray shadow-sm px-4 py-2 bg-white text-base font-medium text-gray hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray sm:text-sm'
+            onClick={() => {
+              setOpenModalDownload(false)
+            }}
+          >
+            Batalkan
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

@@ -15,15 +15,15 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
 
-  let url = new URL(request.url)
-  let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 10
-  let page = url.searchParams.get('page') || 0
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') || ''
+  const size = url.searchParams.get('size') || 10
+  const page = url.searchParams.get('page') || 0
 
-  let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
-  let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
-  let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
-  let userPositionSelected = url.searchParams.get('userPositionSelected') || ''
+  const desaNameSelected = url.searchParams.get('desaNameSelected') || ''
+  const kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
+  const kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
+  const userPositionSelected = url.searchParams.get('userPositionSelected') || ''
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(

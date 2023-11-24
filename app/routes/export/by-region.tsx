@@ -17,13 +17,13 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
 
-  let url = new URL(request.url)
-  let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 10
-  let page = url.searchParams.get('page') || 0
-  let desaNameSelected = url.searchParams.get('desaNameSelected') || ''
-  let kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
-  let kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') || ''
+  const size = url.searchParams.get('size') || 10
+  const page = url.searchParams.get('page') || 0
+  const desaNameSelected = url.searchParams.get('desaNameSelected') || ''
+  const kabupatenNameSelected = url.searchParams.get('kabupatenNameSelected') || ''
+  const kecamatanNameSelected = url.searchParams.get('kecamatanNameSelected') || ''
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -49,7 +49,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     })
     return {
       table: {
-        link: 'user-data',
+        link: 'export/by-region',
         data: result,
         page: page,
         size: size,
@@ -191,7 +191,7 @@ export default function Index(): ReactElement {
       /* File Name */
       let filename = `Data Pengguna by wilayah ${kabupatenNameSelected ?? ''}/${
         kecamatanNameSelected ?? ''
-      }/${desaNameSelected} pada ${moment().format('DD-MM-YYYY')}.xlsx`
+      }/${desaNameSelected} pada  ${moment().format('YYYY-MM-DD HH:mm:ss')}.xlsx`
 
       /* Sheet Name */
       let ws_name = 'Sheet1'

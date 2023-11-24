@@ -4,7 +4,6 @@ import {
   useLoaderData,
   useSubmit,
   useTransition,
-  Link,
   useActionData
 } from '@remix-run/react'
 import { LoaderFunction, ActionFunction } from '@remix-run/node'
@@ -19,20 +18,18 @@ import { Breadcrumb } from '~/components/breadcrumb'
 import { IUserModel } from '~/models/userModel'
 import { ISessionModel } from '~/models/sessionModel'
 import { IKabupatenModel, IKecamatanModel } from '~/models/regionModel'
-import { IWaBlasSettings } from '~/models/waBlas'
-import Button from '~/components/Button'
 
 export let loader: LoaderFunction = async ({ params, request }) => {
   const session: any = await checkSession(request)
   if (!session) return redirect('/login')
 
-  let url = new URL(request.url)
-  let search = url.searchParams.get('search') || ''
-  let size = url.searchParams.get('size') || 10
-  let page = url.searchParams.get('page') || 0
+  const url = new URL(request.url)
+  const search = url.searchParams.get('search') || ''
+  const size = url.searchParams.get('size') || 10
+  const page = url.searchParams.get('page') || 0
 
-  let kabupatenId = url.searchParams.get('kabupatenId')
-  let kecamatanId = url.searchParams.get('kecamatanId')
+  const kabupatenId = url.searchParams.get('kabupatenId')
+  const kecamatanId = url.searchParams.get('kecamatanId')
 
   const kabupaten = await API.get(session, CONFIG.base_url_api + `/region/kabupaten`)
   const kecamatan = await API.get(
@@ -97,10 +94,6 @@ export let action: ActionFunction = async ({ request }) => {
         userData: formData.get('userData') ?? ''
       }
 
-      console.log('_____Start________')
-      console.log(JSON.parse(formData.get('userData') + ''))
-      console.log('_____end________')
-
       await API.post(session, CONFIG.base_url_api + '/wa-blas/send-message', payload)
     }
     return redirect('/wa-blas/history')
@@ -121,7 +114,6 @@ export default function Index(): ReactElement {
     )
   }
 
-  console.log(loader.table.data.items)
   const submit = useSubmit()
 
   const actionData = useActionData()

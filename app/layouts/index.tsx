@@ -55,7 +55,7 @@ export default function Layout({
   }
 
   const exportMenu = {
-    name: 'Export',
+    name: 'Export Data',
     icon: ArrowDownIcon,
     children: [
       { name: 'by wilayah', href: 'export/by-region' },

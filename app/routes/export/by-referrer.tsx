@@ -134,7 +134,7 @@ export default function Index(): ReactElement {
     setOpenModalDownload(false)
   }
 
-  const navigation = [{ title: 'data referral', href: '', active: true }]
+  const navigation = [{ title: 'by referral', href: '', active: true }]
 
   useEffect(() => {
     setMobileActionDropdown(null)

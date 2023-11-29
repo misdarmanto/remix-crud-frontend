@@ -208,7 +208,7 @@ export default function Index(): ReactElement {
 
   return (
     <div className=''>
-      <Breadcrumb title='Export Data Pemilu' navigation={navigation} />
+      <Breadcrumb title='Export Data' navigation={navigation} />
       {actionData?.isError && (
         <div className='p-4 my-5 text-sm text-red-800 rounded-lg bg-red-50' role='alert'>
           <span className='font-medium'>Error</span> {actionData.message}

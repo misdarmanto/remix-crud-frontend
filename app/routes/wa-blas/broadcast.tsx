@@ -41,9 +41,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     const result = await API.getTableData({
       session: session,
       url: CONFIG.base_url_api + '/users/list',
-      pagination: false,
+      pagination: true,
       page: +page ?? 0,
-      size: +size ?? 10,
+      size: +size ?? 100,
       filters: {
         search: search ?? '',
         kabupatenId: kabupatenId ?? '',
@@ -239,6 +239,16 @@ export default function Index(): ReactElement {
         <input hidden name='kecamatanId' value={kecamatanIdSelected} />
         <div className='flex flex-col md:flex-row justify-between mb-2 md:px-0'>
           <div className='px-1 w-full mb-2 flex flex-row gap-2 justify-between md:justify-start'>
+            <select
+              name='size'
+              className='block w-32 px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm'
+            >
+              <option value='100'>100</option>
+              <option value='200'>200</option>
+              <option value='300'>300</option>
+              <option value='400'>400</option>
+              <option value='500'>500</option>
+            </select>
             <select
               onChange={(e) => {
                 setKabupatenSelected(JSON.parse(e.target.value))
